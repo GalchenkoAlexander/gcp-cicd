@@ -6,3 +6,4 @@ unittests.cfg
 logs/
 *.iml
 __pycache__/
+venv/
