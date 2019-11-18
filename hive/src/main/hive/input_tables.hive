@@ -1,0 +1,23 @@
+CREATE EXTERNAL TABLE IF NOT EXISTS ratings_text (
+  UserID            int,
+  MovieID           int,
+  Rating            double,
+  Time_stamp        bigint
+)
+ROW FORMAT DELIMITED
+FIELDS TERMINATED BY ','
+STORED AS TEXTFILE
+LOCATION 'gs://bucket-name/input-data/movie-ratings/ratings'
+TBLPROPERTIES ("skip.header.line.count"="1");
+
+CREATE EXTERNAL TABLE IF NOT EXISTS ratings
+STORED AS ORC
+LOCATION 'gs://bucket-name/output-data/movie-ratings/ratings'
+as
+SELECT * FROM ratings_text;
+
+DROP TABLE IF EXISTS ratings_text;
+
+ANALYZE TABLE ratings COMPUTE STATISTICS;
+
+LOAD DATA INPATH '/users/tom/data.txt' INTO TABLE input_table;

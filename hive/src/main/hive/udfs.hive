@@ -1,0 +1,2 @@
+CREATE FUNCTION txt_to_lower AS 'com.walmart.udf.LowerTextUdf' USING JAR 'gs://gal-wm-test-artifacts/ch17-hive/jars/ch17-hive-2.0-SNAPSHOT.jar';
+CREATE FUNCTION txt_to_upper AS 'com.walmart.udf.UpperTextUdf' USING JAR 'gs://gal-wm-test-artifacts/ch17-hive/jars/ch17-hive-2.0-SNAPSHOT.jar';
