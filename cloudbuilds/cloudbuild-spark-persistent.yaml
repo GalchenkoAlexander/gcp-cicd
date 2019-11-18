@@ -1,0 +1,77 @@
+steps:
+
+    #
+    # Fetch sbt caches
+    #
+  - name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'sh'
+    id: 'copy_sbt_cache'
+    args: ['-c', 'gsutil -m cp -r gs://${PROJECT_ID}-repository/${REPO_NAME}/cb/cache/.sbt-home /cache || true']
+    volumes:
+      - path: '/cache/.sbt-home'
+        name: 'sbt_cache_new'
+    waitFor: ['-']
+
+    #
+    # Fetch ivy caches
+    #
+  - name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'sh'
+    id: 'copy_ivy2_cache'
+    args: ['-c', 'gsutil -m cp -r gs://${PROJECT_ID}-repository/${REPO_NAME}/cb/cache/.ivy2 /cache || true']
+    volumes:
+      - path: '/cache/.ivy2'
+        name: 'ivy_cache_new'
+    waitFor: ['-']
+
+    #
+    # Assembly spark artifact, run unit tests
+    #
+  - name: 'mozilla/sbt:8u212_1.2.8'
+    args: ['sbt', '-Dsbt.global.base=/cache/.sbt-home', '-Dsbt.ivy.home=/cache/.ivy2', 'assembly']
+    volumes:
+      - path: '/cache/.sbt-home'
+        name: 'sbt_cache_new'
+      - path: '/cache/.ivy2'
+        name: 'ivy_cache_new'
+    dir: 'spark/'
+    waitFor: ['copy_sbt_cache', 'copy_ivy2_cache']
+
+    #
+    # Upload Spark artifacts to GS
+    #
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'Upload Spark artifacts'
+    args: [
+      'cp',
+      'target/scala-2.11/*-assembly.jar',
+      'gs://${PROJECT_ID}-repository/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/spark/'
+    ]
+    dir: 'spark/'
+
+    #
+    # Save sbt cache
+    #
+  - name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'sh'
+    id: 'Copy cache back'
+    args: ['-c', 'gsutil -m cp -r /cache/.sbt-home gs://${PROJECT_ID}-repository/${REPO_NAME}/_cloudbuils/cache/.sbt-home  || true']
+    volumes:
+      - path: '/cache/.sbt-home'
+        name: 'sbt_cache_new'
+
+    #
+    # Save ivy cache
+    #
+  - name: 'gcr.io/cloud-builders/gsutil'
+    entrypoint: 'sh'
+    id: 'Copy ivy cache back'
+    args: ['-c', 'gsutil -m cp -r /cache/.ivy2 gs://${PROJECT_ID}-repository/${REPO_NAME}/_cloudbuils/cache/.ivy2  || true']
+    volumes:
+      - path: '/cache/.ivy2'
+        name: 'ivy_cache_new'
+
+
+images: [
+  'mozilla/sbt:8u212_1.2.8'
+]
