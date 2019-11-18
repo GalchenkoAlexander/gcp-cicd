@@ -11,9 +11,10 @@ PROJECT_ID = 'gcp-cicd'
 TEMPLATE_ID = 'gcp-cicd-airflow'
 REGION_ID = 'us-central1'
 
-INPUT_BUCKET = 'gs://' + Variable.get('REPO_PATH') + '/hive/input'
-OUTPUT_BUCKET = 'gs://' + Variable.get('REPO_PATH') + '/hive/output'
+INPUT_BUCKET = 'gs://' + 'gcp-cicd-artifacts' + '/hive/input'
+OUTPUT_BUCKET = 'gs://' + 'gcp-cicd-artifacts' + '/hive/output'
 
+HQL_BUCKET = 'gs://' + 'gcp-cicd' + '/hive/hql'
 
 start_date = datetime(2019, 1, 1)
 
@@ -37,16 +38,16 @@ with DAG(dag_id='dataproc_workflow--hive',
         task_id='HiveWorkflow',
         project_id=PROJECT_ID,
         region=REGION_ID,
-        properties={
-            'autoscalingAlgorithm': 'THROUGHPUT_BASED',
-            'maxNumWorkers': '3',
-        }
+        # properties={
+        #     'autoscalingAlgorithm': 'THROUGHPUT_BASED',
+        #     'maxNumWorkers': '3',
+        # }
     )
 
     submit_hive_task = HiveOperator(
         task_id='HiveSubmit',
         project_id=PROJECT_ID,
-        hql=INPUT_BUCKET,
+        hql=HQL_BUCKET,
     )
 
     dummy_task = DummyOperator(
