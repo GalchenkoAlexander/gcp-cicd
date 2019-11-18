@@ -1,0 +1,5 @@
+airflow/venv
+spark/target
+project/target
+spark/.idea/
+.idea/

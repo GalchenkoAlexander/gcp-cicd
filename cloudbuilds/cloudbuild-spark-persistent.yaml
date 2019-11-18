@@ -6,7 +6,7 @@ steps:
   - name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'sh'
     id: 'copy_sbt_cache'
-    args: ['-c', 'gsutil -m cp -r ${_SBT_CACHE} /cache || true']
+    args: ['-c', 'gsutil -m cp -r gs://$PROJECT_ID-artifacts/$REPO_NAME/_cloudbuils/cache/.sbt-home /cache']
     volumes:
       - path: '/cache/.sbt-home'
         name: 'sbt_cache_new'
@@ -18,7 +18,7 @@ steps:
   - name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'sh'
     id: 'copy_ivy2_cache'
-    args: ['-c', 'gsutil -m cp -r ${_IVY2_CACHE} /cache || true']
+    args: ['-c', 'gsutil -m cp -r gs://$PROJECT_ID-artifacts/$REPO_NAME/_cloudbuils/cache/.ivy2 /cache || true']
     volumes:
       - path: '/cache/.ivy2'
         name: 'ivy_cache_new'
@@ -45,7 +45,7 @@ steps:
     args: [
       'cp',
       'target/scala-2.11/*-assembly.jar',
-      'gs://${PROJECT_ID}-repository/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/spark/'
+      'gs://${PROJECT_ID}-artifacts/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/spark/'
     ]
     dir: 'spark/'
 
@@ -55,7 +55,7 @@ steps:
   - name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'sh'
     id: 'Copy cache back'
-    args: ['-c', 'gsutil -m cp -r /cache/.sbt-home ${_SBT_CACHE}  || true']
+    args: ['-c', 'gsutil -m cp -r /cache/.sbt-home gs://$PROJECT_ID-artifacts/$REPO_NAME/_cloudbuils/cache/.sbt-home  || true']
     volumes:
       - path: '/cache/.sbt-home'
         name: 'sbt_cache_new'
@@ -66,15 +66,10 @@ steps:
   - name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'sh'
     id: 'Copy ivy cache back'
-    args: ['-c', 'gsutil -m cp -r /cache/.ivy2 ${_IVY2_CACHE}  || true']
+    args: ['-c', 'gsutil -m cp -r /cache/.ivy2 gs://$PROJECT_ID-artifacts/$REPO_NAME/_cloudbuils/cache/.ivy2  || true']
     volumes:
       - path: '/cache/.ivy2'
         name: 'ivy_cache_new'
-
-substitutions:
-  _IVY2_CACHE: gs://${PROJECT_ID}-repository/${REPO_NAME}/_cloudbuils/cache/.ivy2
-  _SBT_CACHE: gs://${PROJECT_ID}-repository/${REPO_NAME}/_cloudbuils/cache/.sbt-home
-  _ZONE: us-central1-c
 
 
 images: [
