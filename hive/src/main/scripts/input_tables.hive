@@ -13,7 +13,7 @@ CREATE EXTERNAL TABLE IF NOT EXISTS movies
 STORED AS ORC
 LOCATION 'gs://${PROJECT_ID}-repository/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/output/movies'
 as
-SELECT * FROM movies_text;
+select 'movies_text' as moves, count(*) as cnt from movies_text
 
 DROP TABLE IF EXISTS movies_text;
 
