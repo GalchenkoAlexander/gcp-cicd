@@ -10,7 +10,7 @@ from airflow.contrib.operators.dataproc_operator import DataprocWorkflowTemplate
 from airflow.models import Variable
 
 
-SPARK_JAR = Variable.get("dataproc_workflow--spark__mainJarFileUri")
+SPARK_JAR = 'Variable.get("spark__mainJarFileUri")'
 SPARK_MAIN_CLASS = 'com.sparkexamples.SparkPi'
 
 
@@ -44,8 +44,8 @@ with DAG(dag_id='dataproc_workflow--spark',
             "jobs": [
                 {
                     "sparkJob": {
-                        "mainJarFileUri": f"{SPARK_JAR}",
-                        "mainClass": f"{SPARK_MAIN_CLASS}",
+                        "mainJarFileUri": str(SPARK_JAR),
+                        "mainClass": str(SPARK_MAIN_CLASS),
                         "args": []
                     },
                     "stepId": "1_run-job"
