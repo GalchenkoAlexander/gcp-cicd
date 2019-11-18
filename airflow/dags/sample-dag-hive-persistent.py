@@ -34,25 +34,27 @@ with DAG(dag_id='dataproc_workflow--hive',
          start_date=start_date,
          schedule_interval=None) as dag:
 
-    run_cluster_task = DataprocClusterCreateOperator(
-        task_id='HiveWorkflow',
-        project_id=PROJECT_ID,
-        region=REGION_ID,
-        # properties={
-        #     'autoscalingAlgorithm': 'THROUGHPUT_BASED',
-        #     'maxNumWorkers': '3',
-        # }
-    )
+    # run_cluster_task = DataprocClusterCreateOperator(
+    #     task_id='HiveWorkflow',
+    #     project_id=PROJECT_ID,
+    #     region=REGION_ID,
+    #     # properties={
+    #     #     'autoscalingAlgorithm': 'THROUGHPUT_BASED',
+    #     #     'maxNumWorkers': '3',
+    #     # }
+    # )
 
     submit_hive_task = HiveOperator(
         task_id='HiveSubmit',
         project_id=PROJECT_ID,
         hql=HQL_BUCKET,
+        location='us-central1'
     )
 
     dummy_task = DummyOperator(
         task_id='DummyTask'
     )
 
-    dummy_task >> run_cluster_task
-    run_cluster_task >> submit_hive_task
+    # dummy_task >> run_cluster_task
+    # run_cluster_task >> submit_hive_task
+    dummy_task >> submit_hive_task
