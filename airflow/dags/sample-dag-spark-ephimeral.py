@@ -81,4 +81,4 @@ with DAG(dag_id='dataproc_workflow--spark',
         task_id='DummyTask'
     )
 
-    task_1 >> task_2
+    task_1

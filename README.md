@@ -42,7 +42,7 @@ gcloud composer environments create <ENVIRONMENT-NAME> \
 
 ```
 
-- DAGs and dependencies
+- create DAGs and dependencies
 
 ```
 gcloud composer environments update gcp-test-env-2 \
@@ -65,6 +65,16 @@ gcloud composer environments storage dags import \
   --environment gcp-test-env-2  \
   --location us-central1 \
   --source airflow/dags/sample-dag-spark-ephimeral.py
+```
+
+
+with
+
+```
+gcloud composer environments run gcp-test-env-2 \
+--location us-central1 variables -- \
+--set spark__mainJarFileUri gs://builds-2/gcp-cicd/master/43124321/spark/app.jar
+
 ```
 
 ## Sample CI/CD pipeline for running Hive job on ephemeral cluster
