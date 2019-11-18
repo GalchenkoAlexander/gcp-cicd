@@ -1,5 +1,6 @@
-airflow/venv
+airflow/venv/
 spark/target
 project/target
 spark/.idea/
-.idea/
+.idea
+.git
