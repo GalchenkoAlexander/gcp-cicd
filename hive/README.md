@@ -2,7 +2,7 @@
 
 # 1 node dataproc
 ```
-gcloud dataproc clusters create gal-hadoop-udf \
+gcloud dataproc clusters create gal-hadoop-com.udf \
   --project gal-wm-test \
   --region us-central1 \
   --zone us-central1-a \

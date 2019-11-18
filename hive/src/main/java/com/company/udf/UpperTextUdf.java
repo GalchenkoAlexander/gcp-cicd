@@ -1,4 +1,4 @@
-package com.walmart.udf;
+package com.company.udf;
 
 import org.apache.hadoop.hive.ql.exec.Description;
 import org.apache.hadoop.hive.ql.exec.UDF;

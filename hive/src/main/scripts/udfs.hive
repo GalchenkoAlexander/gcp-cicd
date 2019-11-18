@@ -1,5 +1,0 @@
-CREATE FUNCTION txt_to_lower AS 'com.walmart.udf.LowerTextUdf'
-USING JAR 'gs://${PROJECT_ID}-repository/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/jars/jars/gcp-cicd-udf-1.0-SNAPSHOT.jar';
-
-CREATE FUNCTION txt_to_upper AS 'com.walmart.udf.UpperTextUdf'
-USING JAR 'gs://${PROJECT_ID}-repository/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/jars/jars/gcp-cicd-udf-1.0-SNAPSHOT.jar';
