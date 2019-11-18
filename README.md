@@ -30,13 +30,10 @@ gcloud builds submit \
 
 ### Composer
 
-Variabls:
-- **ENVIRONMENT-NAME** = gcp-composer-test
-
-Creates composer Cloud Composer environment
+Next steps are describes process of composer creation.
 
 
-#### Cloud Composer environment
+- Cloud Composer environment
 ```
 gcloud composer environments create <ENVIRONMENT-NAME> \
     --location us-central1 \
@@ -45,7 +42,7 @@ gcloud composer environments create <ENVIRONMENT-NAME> \
 
 ```
 
-#### DAGs and dependencies
+- DAGs and dependencies
 
 ```
 gcloud composer environments update gcp-test-env-2 \
@@ -53,7 +50,7 @@ gcloud composer environments update gcp-test-env-2 \
 --location us-central1
 ```
 
-And
+with
 
 ```
 gcloud composer environments describe gcp-test-env-2 \
@@ -61,7 +58,7 @@ gcloud composer environments describe gcp-test-env-2 \
   --format="get(config.dagGcsPrefix)"
 ```
 
-And
+with
 
 ```
 gcloud composer environments storage dags import \
