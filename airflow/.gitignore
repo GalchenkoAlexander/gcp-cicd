@@ -1,0 +1,8 @@
+.idea/
+*.pyc
+airflow.cfg
+airflow.db
+unittests.cfg
+logs/
+*.iml
+__pycache__/
