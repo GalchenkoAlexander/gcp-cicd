@@ -1,0 +1,42 @@
+steps:
+
+# github clone
+#- name: 'gcr.io/cloud-builders/git'
+#  args: ['clone', 'https://github.com/GalchenkoAlexander/ch17-hive.git']
+
+# Copying hive files to GCS
+- name: 'gcr.io/cloud-builders/gsutil'
+  args:
+  - 'cp'
+  - 'hive/src/main/scripts/*'
+  - 'gs://${PROJECT_ID}-repository/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/scripts/'
+  volumes:
+    - path: '/.'
+      name: 'source'
+
+# Exec maven package
+- name: 'gcr.io/cloud-builders/mvn'
+  args: ['package', '-DoutputDirectory=target']
+  volumes:
+    - path: '/target'
+      name: 'target'
+
+# Copying jars files to GCS
+- name: 'gcr.io/cloud-builders/gsutil'
+  args:
+    - 'cp'
+    - '-r'
+    - 'target/*.jar'
+    - 'gs://${PROJECT_ID}-repository/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/jars/'
+  volumes:
+    - path: '/target'
+      name: 'target'
+
+# Copying input datasets to GCS
+- name: 'gcr.io/cloud-builders/gsutil'
+  args:
+    - 'cp'
+    - '-r'
+    - '/source/hive/src/main/test/resources/input/*'
+    - 'gs://${PROJECT_ID}-repository/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/input/'
+
