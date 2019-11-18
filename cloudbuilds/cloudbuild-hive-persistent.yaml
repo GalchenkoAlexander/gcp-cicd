@@ -9,7 +9,7 @@ steps:
   args:
   - 'cp'
   - 'hive/src/main/scripts/*'
-  - 'gs://${PROJECT_ID}-repository/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/scripts/'
+  - 'gs://${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/scripts/'
   volumes:
     - path: '/.'
       name: 'source'
@@ -27,7 +27,7 @@ steps:
     - 'cp'
     - '-r'
     - 'target/*.jar'
-    - 'gs://${PROJECT_ID}-repository/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/jars/'
+    - 'gs://${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/jars/'
   volumes:
     - path: '/target'
       name: 'target'
@@ -38,5 +38,9 @@ steps:
     - 'cp'
     - '-r'
     - '/source/hive/src/main/test/resources/input/*'
-    - 'gs://${PROJECT_ID}-repository/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/input/'
+    - 'gs://${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/input/'
+
+substitutions:
+  PROJECT_ID: gcp-cicd
+
 

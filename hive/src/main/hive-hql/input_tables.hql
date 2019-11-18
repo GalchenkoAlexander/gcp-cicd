@@ -6,12 +6,12 @@ CREATE EXTERNAL TABLE IF NOT EXISTS movies_text (
 ROW FORMAT DELIMITED
 FIELDS TERMINATED BY ','
 STORED AS TEXTFILE
-LOCATION 'gs://gcp-cicd-repository/hive/input'
+LOCATION 'gs://${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/input'
 TBLPROPERTIES ("skip.header.line.count"="1");
 
 CREATE EXTERNAL TABLE IF NOT EXISTS movies
 STORED AS ORC
-LOCATION 'gs://gcp-cicd-repository/hive/output/'
+LOCATION 'gs://${PROJECT_ID}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/output/'
 as
 select 'movies_text' as movies, count(*) as cnt from movies_text
 

@@ -1,3 +1,4 @@
-/hive/gcp-cicd-udf.iml
+/hive/*.iml
 /.idea
 /hive/target
+/*.iml
