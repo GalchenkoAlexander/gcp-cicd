@@ -29,6 +29,7 @@ steps:
     #
   - name: 'mozilla/sbt:8u212_1.2.8'
     args: ['sbt', '-Dsbt.global.base=/cache/.sbt-home', '-Dsbt.ivy.home=/cache/.ivy2', 'assembly']
+    id: 'build_spark_jar'
     volumes:
       - path: '/cache/.sbt-home'
         name: 'sbt_cache_new'
@@ -41,11 +42,11 @@ steps:
     # Upload Spark artifacts to GS
     #
   - name: 'gcr.io/cloud-builders/gsutil'
-    id: 'Upload Spark artifacts'
+    id: 'publish-spark-artifact'
     args: [
       'cp',
-      'target/scala-2.11/*-assembly.jar',
-      'gs://${PROJECT_ID}-artifacts/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/spark/'
+      'target/scala-2.11/*assembly*.jar',
+      'gs://${PROJECT_ID}-artifacts/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/spark/app.jar'
     ]
     dir: 'spark/'
 
@@ -54,23 +55,40 @@ steps:
     #
   - name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'sh'
-    id: 'Copy cache back'
+    id: 'copy _sbt_cache_back'
     args: ['-c', 'gsutil -m cp -r /cache/.sbt-home gs://$PROJECT_ID-artifacts/$REPO_NAME/_cloudbuils/cache/.sbt-home  || true']
     volumes:
       - path: '/cache/.sbt-home'
         name: 'sbt_cache_new'
+    waitFor: ['build_spark_jar']
 
     #
     # Save ivy cache
     #
   - name: 'gcr.io/cloud-builders/gsutil'
     entrypoint: 'sh'
-    id: 'Copy ivy cache back'
+    id: 'copy_ivy_cache_back'
     args: ['-c', 'gsutil -m cp -r /cache/.ivy2 gs://$PROJECT_ID-artifacts/$REPO_NAME/_cloudbuils/cache/.ivy2  || true']
     volumes:
       - path: '/cache/.ivy2'
         name: 'ivy_cache_new'
+    waitFor: ['build_spark_jar']
 
+    #
+    # Deploy spark jar to the cloud composer env
+    #
+  - name: gcr.io/cloud-builders/gcloud
+    args: ['composer', 'environments',
+    'run', '${_COMPOSER_ENV_NAME}',
+    '--location', '${_COMPOSER_REGION}',
+    'variables', '--',
+         '--set', 'dataproc_workflow--spark__mainJarFileUri', 'gs://${PROJECT_ID}-artifacts/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/spark/app.jar']
+    id: 'set-composer-jar-ref'
+    waitFor: ['publish-spark-artifact']
+
+substitutions:
+  _COMPOSER_REGION: us-central1
+  _COMPOSER_ENV_NAME: dag_cicd_example
 
 images: [
   'mozilla/sbt:8u212_1.2.8'

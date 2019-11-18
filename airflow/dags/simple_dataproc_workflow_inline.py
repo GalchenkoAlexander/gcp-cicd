@@ -7,8 +7,15 @@ from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.contrib.operators.dataproc_operator import DataprocWorkflowTemplateInstantiateInlineOperator
 
-PROJECT_ID = 'wmt-data-search'
-TEMPLATE_ID = 'wlt-demo-wf'
+from airflow.models import Variable
+
+
+SPARK_JAR = Variable.get("dataproc_workflow--spark__mainJarFileUri")
+SPARK_MAIN_CLASS = 'com.sparkexamples.SparkPi'
+
+
+PROJECT_ID = 'data-search'
+TEMPLATE_ID = 'demo-wf'
 REGION_ID = 'us-central1'
 
 start_date = datetime(2019, 1, 1)
@@ -24,7 +31,7 @@ default_args = {
     'retry_delay': timedelta(minutes=5)
 }
 
-with DAG(dag_id='simple_dataproc_workflow--spark',
+with DAG(dag_id='dataproc_workflow--spark',
          default_args=default_args,
          start_date=start_date,
          schedule_interval=None) as dag:
@@ -37,11 +44,11 @@ with DAG(dag_id='simple_dataproc_workflow--spark',
             "jobs": [
                 {
                     "sparkJob": {
-                        "mainJarFileUri": f"TODO",
-                        "mainClass": "TODO",
+                        "mainJarFileUri": f"{SPARK_JAR}",
+                        "mainClass": f"{SPARK_MAIN_CLASS}",
                         "args": []
                     },
-                    "stepId": "1_load-data-job"
+                    "stepId": "1_run-job"
                 }
             ],
             "placement": {
