@@ -32,13 +32,13 @@ steps:
     '--location', '${_COMPOSER_REGION}',
     'variables',
     '--',
-    '--set', 'spark__mainJarFileUri', 'gs://_BUILD_BUCKET/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/spark/app.jar']
+    '--set', 'spark__mainJarFileUri', 'gs://$_BUILD_BUCKET/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/spark/app.jar']
     id: 'set-composer-jar-ref'
     waitFor: ['publish_spark_artifact']
 
 substitutions:
   _COMPOSER_REGION: us-central1
-  _COMPOSER_ENV_NAME: dag_cicd_example
+  _COMPOSER_ENV_NAME: gcp-test-env-2
   _BUILD_BUCKET: cicd
 
 images: [

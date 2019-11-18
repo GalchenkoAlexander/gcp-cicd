@@ -10,13 +10,10 @@ from airflow.contrib.operators.dataproc_operator import DataprocWorkflowTemplate
 from airflow.models import Variable
 
 
-SPARK_JAR = 'Variable.get("spark__mainJarFileUri")'
+SPARK_JAR = Variable.get("spark__mainJarFileUri")
 SPARK_MAIN_CLASS = 'com.sparkexamples.SparkPi'
 
 
-PROJECT_ID = 'data-search'
-TEMPLATE_ID = 'demo-wf'
-REGION_ID = 'us-central1'
 
 start_date = datetime(2019, 1, 1)
 
