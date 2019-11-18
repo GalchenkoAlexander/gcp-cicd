@@ -2,19 +2,21 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.dummy_operator import DummyOperator
 from airflow.contrib.operators.dataproc_operator import DataprocClusterCreateOperator
-from airflow.operators.hive_operator import HiveOperator
+from airflow.contrib.operators.dataproc_operator import DataProcHiveOperator
 
 
 from airflow.models import Variable
 
-PROJECT_ID = 'gcp-cicd'
-TEMPLATE_ID = 'gcp-cicd-airflow'
+PROJECT_ID = 'gcp-cicd-artifacts'
 REGION_ID = 'us-central1'
 
 INPUT_BUCKET = 'gs://' + 'gcp-cicd-artifacts' + '/hive/input'
 OUTPUT_BUCKET = 'gs://' + 'gcp-cicd-artifacts' + '/hive/output'
 
-HQL_BUCKET = 'gs://' + 'gcp-cicd' + '/hive/hql'
+HQL_BUCKET = 'gs://' + PROJECT_ID + '/hive/hql/'
+UDF_BUCKET = 'gs://' + PROJECT_ID + '/hive/udf/'
+HQL_SCRIPT_NAME = 'input_tables.hql'
+UDF_JAR_MANE = 'gcp-cicd-udf-1.0-SNAPSHOT.jar'
 
 start_date = datetime(2019, 1, 1)
 
@@ -29,7 +31,7 @@ default_args = {
     'retry_delay': timedelta(minutes=5)
 }
 
-with DAG(dag_id='dataproc_workflow--hive',
+with DAG(dag_id='hive-query-submit',
          default_args=default_args,
          start_date=start_date,
          schedule_interval=None) as dag:
@@ -44,11 +46,14 @@ with DAG(dag_id='dataproc_workflow--hive',
     #     # }
     # )
 
-    submit_hive_task = HiveOperator(
+    submit_hive_task = DataProcHiveOperator(
         task_id='HiveSubmit',
         project_id=PROJECT_ID,
-        hql=HQL_BUCKET,
-        location='us-central1'
+        gcp_conn_id='google_cloud_default',
+        query_uri=HQL_BUCKET + HQL_SCRIPT_NAME,
+        dataproc_hive_jars=[UDF_BUCKET + UDF_JAR_MANE],
+        variables={'PROJECT_ID': PROJECT_ID},
+        region='us-central1'
     )
 
     dummy_task = DummyOperator(
