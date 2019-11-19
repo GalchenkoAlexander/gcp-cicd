@@ -1,0 +1,31 @@
+{
+   "@spec":1,
+   "@v":134,
+   "@ns":{
+      "master":{
+         "@last_success":"b8c31afa-abfb-49a7-8159-d49083b141cc",
+         "@v":15,
+         "@history":{
+             "b8c31afa-abfb-49a7-8159-d49083b141cc": {
+                 "@built_at":"2011-08-08T04:00:00.000Z",
+                 "@rev":"bca4134a2763c4be1aebf6133637bd53372ed9ec",
+                 "MyComponentX":{
+                     "@type":"sparkJob | hiveJob | etc.",
+                     "@ref":"gs://builds-bucket/my-bigdata-repo/master/579539e/spark/app.jar",
+                     "@metadata":{},
+                     "@sha":"777c3a7ed83e44198b0a624976ec99822eb6f4a44bf1513eafbc7c13997cd86c"
+                 }
+             },
+             "44198b0-abfb-48a7-8159-d9822eb6f4a44": {
+               ...
+             }
+         }
+      },
+      "develop":{
+         ...
+      },
+      "feature/ABS-01":{
+         ...
+      }
+   }
+}

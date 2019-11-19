@@ -3,7 +3,7 @@ steps:
     #
     # Assembly spark artifact, run unit tests
     #
-    # TODO: USE '-Dsbt.global.base=/cache/.sbt-home', '-Dsbt.ivy.home=/cache/.ivy2'
+    # TODO: use '-Dsbt.global.base=/cache/.sbt-home', '-Dsbt.ivy.home=/cache/.ivy2'
   - name: 'mozilla/sbt:8u212_1.2.8'
     args: ['sbt',  'assembly']
     id: 'build_spark_jar'
@@ -23,23 +23,20 @@ steps:
     dir: 'spark/'
 
 
-    #
-    # Deploy spark jar to the cloud composer env
-    #
-  - name: gcr.io/cloud-builders/gcloud
-    args: ['composer', 'environments',
-    'run', '${_COMPOSER_ENV_NAME}',
-    '--location', '${_COMPOSER_REGION}',
-    'variables',
-    '--',
-    '--set', 'sample-dag-spark-ephimeral__mainJarFileUri',
-     'gs://$_BUILD_BUCKET/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/spark/app.jar']
-    id: 'set-composer-jar-ref'
-    waitFor: ['publish_spark_artifact']
+
+
+  #
+  # Read update and write manifest file after build finishs
+  #
+
+  # - name: python:3.7
+  #   args: ['']
+  #   id: 'set-build-ref'
+  #   waitFor: ['publish_spark_artifact']
+
+
 
 substitutions:
-  _COMPOSER_REGION: us-central1
-  _COMPOSER_ENV_NAME: gcp-test-env-2
   _BUILD_BUCKET: cicd
 
 images: [

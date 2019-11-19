@@ -1,28 +1,3 @@
-# gcp-cicd
-
-This repository contains sample CI/CD pipelines for Hadoop-related GCP services.
-<<<<<<< HEAD
-Here they are:
-* [Sample CI/CD pipeline for running Hive job on persistent cluster](hive-sample-persistent.md)
-* [Sample CI/CD pipeline for running Hive job on ephemeral cluster](hive-sample-ephemeral.md)
-* [Sample CI/CD pipeline for running Spark job on ephemeral cluster](spark-sample-ephemeral.md)
-=======
-
-## Sample CI/CD pipeline for running Spark job on persistent cluster
-Cloud build configuration location: [cloudbuild-spark-ephimeral.yaml](cloudbuilds/cloudbuild-spark-ephimeral.yaml)
-Run build with this command:
-```
-gcloud builds submit \
---substitutions=_BUILD_BUCKET=builds-2,REPO_NAME=gcp-cicd,BRANCH_NAME=master,SHORT_SHA=$(date | md5)  \
---config cloudbuilds/cloudbuild-spark-persistent.yaml .
-```
-
-## Sample CI/CD pipeline for running Hive job on persistent cluster
-Cloud build configuration location: [cloudbuild-hive-persistent.yaml](cloudbuilds/cloudbuild-hive-persistent.yaml)
-Run build with this command:
-```
-COMMAND TBD
-```
 
 ## Sample CI/CD pipeline for running Spark job on ephemeral cluster
 
@@ -32,6 +7,12 @@ Current sample build spark application and publish it into specific gs folder.
 After build success, specified
 cloud composer environment's variable will be updated with newly assembled jar file.
 
+Run build with this command:
+```
+gcloud builds submit \
+--substitutions=_BUILD_BUCKET=builds-2,REPO_NAME=gcp-cicd,BRANCH_NAME=master,SHORT_SHA=$(date | md5)  \
+--config cloudbuilds/cloudbuild-spark-persistent.yaml .
+```
 
 ### Composer
 
@@ -88,6 +69,3 @@ Build is based on sbt tool. For speedup make  sense to save build tools cache di
 More optimal way will be a bash script that zip-and-store folders on GS after the main steps and "vice versa" before run.
 
 For dependencies management sbt uses sbt-assembly plugin (that creats uber jar with shaded dependencies).
-
-## Sample CI/CD pipeline for running Hive job on ephemeral cluster
->>>>>>> README update
