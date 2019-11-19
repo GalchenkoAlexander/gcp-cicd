@@ -18,8 +18,14 @@ COMMAND TBD
 
 ## Sample CI/CD pipeline for running Spark job on ephemeral cluster
 
-
 Spark builds based on sbt. For triggering from shell several git specific substitutions are required.
+Current sample build spark application and publish it into specific gs folder.
+
+After build success, specified
+cloud composer environment's variable will be updated with newly assembled jar file.
+
+
+
 
 Example of shell triggered build:
 ```
@@ -42,10 +48,10 @@ gcloud composer environments create <ENVIRONMENT-NAME> \
 
 ```
 
-- DAGs and dependencies
+- create DAGs and dependencies
 
 ```
-gcloud composer environments update gcp-test-env-2 \
+gcloud composer environments update gcp-test-3 \
 --update-pypi-packages-from-file airflow/requirements.txt \
 --location us-central1
 ```
@@ -53,7 +59,7 @@ gcloud composer environments update gcp-test-env-2 \
 with
 
 ```
-gcloud composer environments describe gcp-test-env-2 \
+gcloud composer environments describe gcp-test-3 \
   --location us-central1 \
   --format="get(config.dagGcsPrefix)"
 ```
@@ -62,9 +68,20 @@ with
 
 ```
 gcloud composer environments storage dags import \
-  --environment gcp-test-env-2  \
+  --environment gcp-test-3  \
   --location us-central1 \
   --source airflow/dags/sample-dag-spark-ephimeral.py
 ```
+
+
+with
+
+```
+gcloud composer environments run gcp-test-3 \
+--location us-central1 variables -- \
+--set spark__mainJarFileUri gs://builds-2/gcp-cicd/master/43124321/spark/app.jar
+
+```
+
 
 ## Sample CI/CD pipeline for running Hive job on ephemeral cluster

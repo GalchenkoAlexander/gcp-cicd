@@ -10,7 +10,7 @@ from airflow.contrib.operators.dataproc_operator import DataprocWorkflowTemplate
 from airflow.models import Variable
 
 
-SPARK_JAR = Variable.get("spark__mainJarFileUri")
+SPARK_JAR = Variable.get("sample-dag-spark-ephimeral__mainJarFileUri")
 SPARK_MAIN_CLASS = 'com.sparkexamples.SparkPi'
 
 
@@ -28,7 +28,7 @@ default_args = {
     'retry_delay': timedelta(minutes=5)
 }
 
-with DAG(dag_id='dataproc_workflow--spark',
+with DAG(dag_id='sample-dag-spark-ephimeral__mainJarFileUri',
          default_args=default_args,
          start_date=start_date,
          schedule_interval=None) as dag:
@@ -81,4 +81,4 @@ with DAG(dag_id='dataproc_workflow--spark',
         task_id='DummyTask'
     )
 
-    task_1 >> task_2
+    task_1
