@@ -47,6 +47,7 @@ with DAG(dag_id='hive-query-submit-ephemeral',
         region=REGION_ID,
         zone=ZONE,
         # service_account='aaa-865@gcp-cicd-259411.iam.gserviceaccount.com',
+        # service_account='service-1074371413042@dataproc-accounts.iam.gserviceaccount.com',
         master_machine_type='n1-standard-1')
 
     submit_hive_task = DataProcHiveOperator(
