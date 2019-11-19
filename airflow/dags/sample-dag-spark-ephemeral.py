@@ -14,7 +14,6 @@ SPARK_JAR = Variable.get("sample-dag-spark-ephimeral__mainJarFileUri")
 SPARK_MAIN_CLASS = 'com.sparkexamples.SparkPi'
 
 
-
 start_date = datetime(2019, 1, 1)
 
 default_args = {

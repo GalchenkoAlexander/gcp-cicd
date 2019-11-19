@@ -1,4 +1,5 @@
-# Sample CI/CD pipeline for running Spark job on ephemeral cluster
+
+## Sample CI/CD pipeline for running Spark job on ephemeral cluster
 
 Spark builds based on sbt. For triggering from shell several git specific substitutions are required.
 Current sample build spark application and publish it into specific gs folder.
@@ -6,10 +7,7 @@ Current sample build spark application and publish it into specific gs folder.
 After build success, specified
 cloud composer environment's variable will be updated with newly assembled jar file.
 
-
-
-
-Example of shell triggered build:
+Run build with this command:
 ```
 gcloud builds submit \
 --substitutions=_BUILD_BUCKET=builds-2,REPO_NAME=gcp-cicd,BRANCH_NAME=master,SHORT_SHA=$(date | md5)  \
@@ -64,3 +62,10 @@ gcloud composer environments run gcp-test-3 \
 --set spark__mainJarFileUri gs://builds-2/gcp-cicd/master/43124321/spark/app.jar
 
 ```
+
+### CI
+
+Build is based on sbt tool. For speedup make  sense to save build tools cache directories.
+More optimal way will be a bash script that zip-and-store folders on GS after the main steps and "vice versa" before run.
+
+For dependencies management sbt uses sbt-assembly plugin (that creats uber jar with shaded dependencies).
