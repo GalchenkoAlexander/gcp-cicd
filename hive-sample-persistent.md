@@ -1,6 +1,11 @@
 # Sample CI/CD pipeline for running Hive job on persistent cluster
 
 ### Build
+Build steps:
+- copy resources into specific gs folder
+- create UDF jar file
+- publish this jars into specific gs folder
+- copying input dataset files to GCS
 
 Run build with this command:
 
@@ -11,12 +16,11 @@ gcloud builds submit \
 ```
 
 ### Dataproc
-Dataproc cluster must be up and running
+A Dataproc cluster must be up and running
 
 ### Composer
 
 Next steps are describes process of composer creation.
-
 
 - Cloud Composer environment
 ```
