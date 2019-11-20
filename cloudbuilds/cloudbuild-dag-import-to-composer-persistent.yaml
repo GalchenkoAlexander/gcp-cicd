@@ -1,0 +1,15 @@
+steps:
+
+  # Copying DAG files to GCS
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'composer'
+      - 'environments'
+      - 'storage'
+      - 'dags'
+      - 'import'
+      - '--environment aaaaaaa'
+      - '--location us-central1'
+      - '--source airflow/dags/sample-dag-hive-persistent.py'
+
+
