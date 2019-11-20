@@ -1,3 +1,6 @@
+substitutions:
+  SOURCE: 'airflow/dags/*'
+
 steps:
 
   # Copying DAG files to GCS
@@ -8,8 +11,8 @@ steps:
       - 'storage'
       - 'dags'
       - 'import'
-      - '--environment aaaaaaa'
-      - '--location us-central1'
-      - '--source airflow/dags/sample-dag-hive-persistent.py'
+      - '--environment=${COMPOSER_ENV_NAME}'
+      - '--location=${COMPOSER_REGION}'
+      - '--source=${SOURCE}'
 
 
