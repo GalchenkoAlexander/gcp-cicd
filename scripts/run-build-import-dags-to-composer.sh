@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euxo pipefail
 
-. ./env.sh
+. ./env-composer.sh
 cd ..
 
 ### run build
