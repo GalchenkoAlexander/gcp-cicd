@@ -5,42 +5,98 @@ steps:
 
   # github clone
   - name: 'gcr.io/cloud-builders/git'
+    id: 'clone gcp-cicd'
     args: ['clone', 'https://github.com/elisska/gcp-cicd.git', '/gcp-cicd']
     volumes:
       - path: '/gcp-cicd'
         name: 'repository'
 
   - name: puckel/docker-airflow:latest
-    id: 'init'
+    id: 'initdb'
     args: ['airflow', 'initdb']
     volumes:
       - path: '/gcp-cicd'
         name: 'repository'
       - path: '/usr/local/airflow'
-        name: 'airflow_server'
+        name: 'airflow_home'
+
 
   - name: puckel/docker-airflow:latest
+    id: 'pip_install.sh'
+    entrypoint: 'bash'
+    args: ['/gcp-cicd/airflow/pip_install.sh', '/usr/local/airflow/venv']
+    volumes:
+      - path: '/gcp-cicd'
+        name: 'repository'
+      - path: '/usr/local/airflow'
+        name: 'airflow_home'
+
+  - name: puckel/docker-airflow:latest
+    id: 'pip install -r /gcp-cicd/requirements.txt'
+    args: ['pip', 'install', '-r', '/gcp-cicd/airflow/requirements.txt']
+    volumes:
+      - path: '/gcp-cicd'
+        name: 'repository'
+      - path: '/usr/local/airflow'
+        name: 'airflow_home'
+
+
+
+
+
+
+
+
+  - name: puckel/docker-airflow:latest
+    id: 'test-validation'
     entrypoint: 'python'
     args: ['dags-validation-test.py']
     dir: '/gcp-cicd/airflow/test/validation/'
-    id: 'test-validation'
     env:
       - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
-      - 'AIRFLOW__CORE__DAGS_FOLDER=/gcp-cicd/airflow/dags'
+      - 'AIRFLOW__CORE__DAGS_FOLDER=./airflow/dags'
     volumes:
-      - path: '/gcp-cicd'
-        name: 'repository'
+      - path: '/airflow'
+        name: 'airflow_source'
       - path: '/usr/local/airflow'
-        name: 'airflow_server'
+        name: 'airflow_home'
 
-  - name: puckel/docker-airflow:latest
-    args: ['env']
-    id: 'show env'
-    volumes:
-      - path: '/gcp-cicd'
-        name: 'repository'
-      - path: '/usr/local/airflow'
-        name: 'airflow_server'
+#  - name: puckel/docker-airflow:latest
+#    id: 'show env'
+#    args: ['env']
+#    volumes:
+#      - path: '/gcp-cicd'
+#        name: 'repository'
+#      - path: '/airflow_home'
+#        name: 'airflow_home'
+#
+#  - name: puckel/docker-airflow:latest
+#    id: 'cat airflow.cfg'
+#    args: ['cat', '/usr/local/airflow/airflow.cfg']
+#    volumes:
+#      - path: '/gcp-cicd'
+#        name: 'repository'
+#      - path: '/airflow_home'
+#        name: 'airflow_home'
+
+#  - name: puckel/docker-airflow:latest
+#    id: 'pwd'
+#    args: ['pwd']
+#    volumes:
+#      - path: '/gcp-cicd'
+#        name: 'repository'
+#      - path: '/usr/local/airflow'
+#        name: 'airflow_home'
+
+#  - name: puckel/docker-airflow:latest
+#    id: 'ls'
+#    args: ['ls', '-la', '/usr/local/airflow']
+#    volumes:
+#      - path: '/gcp-cicd'
+#        name: 'repository'
+#      - path: '/usr/local/airflow'
+#        name: 'airflow_home'
+
 
   - name: puckel/docker-airflow:latest
     entrypoint: 'python'
@@ -54,7 +110,7 @@ steps:
       - path: '/gcp-cicd'
         name: 'repository'
       - path: '/usr/local/airflow'
-        name: 'airflow_server'
+        name: 'airflow_home'
 
   # Copying DAG files to GCS
   - name: 'gcr.io/cloud-builders/gcloud'
