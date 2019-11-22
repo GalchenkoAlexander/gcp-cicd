@@ -24,16 +24,7 @@ steps:
   - name: puckel/docker-airflow:latest
     id: 'pip_install.sh'
     entrypoint: 'bash'
-    args: ['/gcp-cicd/airflow/pip_install.sh', '/usr/local/airflow/venv']
-    volumes:
-      - path: '/gcp-cicd'
-        name: 'repository'
-      - path: '/usr/local/airflow'
-        name: 'airflow_home'
-
-  - name: puckel/docker-airflow:latest
-    id: 'pip install -r /gcp-cicd/requirements.txt'
-    args: ['pip', 'install', '-r', '/gcp-cicd/airflow/requirements.txt']
+    args: ['/gcp-cicd/airflow/pip_install.sh', '/usr/local/airflow/venv', '/gcp-cicd/airflow']
     volumes:
       - path: '/gcp-cicd'
         name: 'repository'
@@ -54,10 +45,10 @@ steps:
     dir: '/gcp-cicd/airflow/test/validation/'
     env:
       - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
-      - 'AIRFLOW__CORE__DAGS_FOLDER=./airflow/dags'
+      - 'AIRFLOW__CORE__DAGS_FOLDER=/gcp-cicd/airflow/dags'
     volumes:
-      - path: '/airflow'
-        name: 'airflow_source'
+      - path: '/gcp-cicd'
+        name: 'repository'
       - path: '/usr/local/airflow'
         name: 'airflow_home'
 
@@ -99,10 +90,10 @@ steps:
 
 
   - name: puckel/docker-airflow:latest
+    id: 'test-definition'
     entrypoint: 'python'
     args: ['sample-dag-hive-ephemeral-definition-test.py']
     dir: '/gcp-cicd/airflow/test/definition/'
-    id: 'test-definition'
     env:
       - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
       - 'AIRFLOW__CORE__DAGS_FOLDER=/gcp-cicd/airflow/dags'
