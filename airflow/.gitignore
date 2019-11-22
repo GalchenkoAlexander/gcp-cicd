@@ -7,3 +7,4 @@ logs/
 *.iml
 __pycache__/
 venv/
+/airflow-webserver.pid

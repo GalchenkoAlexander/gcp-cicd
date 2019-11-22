@@ -2,3 +2,4 @@
 /.idea
 /hive/target
 /*.iml
+/scripts/env-persional.sh

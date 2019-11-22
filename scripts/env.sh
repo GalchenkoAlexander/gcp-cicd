@@ -12,3 +12,6 @@ export SHORT_SHA=$('$PROJECT_ID' | md5)
 export ROOT_BUILD_PATH=${BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}
 
 #gcloud config set project ${PROJECT_ID}
+
+touch ./env-persional.sh
+. ./env-persional.sh

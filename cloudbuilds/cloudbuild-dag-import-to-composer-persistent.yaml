@@ -1,7 +1,18 @@
 substitutions:
-  SOURCE: 'airflow/dags/*'
 
 steps:
+  # Run test
+  - name: apache/airflow:master-python3.7-ci
+    entrypoint: 'python'
+    args: ['sample-dag-hive-ephemeral-definition-test.py']
+    dir: './airflow/test/definition/'
+    id: 'test-definition'
+
+  - name: apache/airflow:master-python3.7-ci
+    entrypoint: 'python'
+    args: ['sample-dag-hive-ephemeral-validation-test.py']
+    dir: './airflow/test/validation/'
+    id: 'test-validation'
 
   # Copying DAG files to GCS
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -11,8 +22,11 @@ steps:
       - 'storage'
       - 'dags'
       - 'import'
-      - '--environment=${COMPOSER_ENV_NAME}'
-      - '--location=${COMPOSER_REGION}'
-      - '--source=${SOURCE}'
+      - '--environment=${_COMPOSER_ENV_NAME}'
+      - '--location=${_COMPOSER_REGION}'
+      - '--source=${_SOURCE}'
 
 
+images: [
+  'apache/airflow:master-python3.7-ci'
+]

@@ -1,13 +1,10 @@
 from datetime import datetime, timedelta
+
 from airflow import DAG
-from airflow.operators.dummy_operator import DummyOperator
-from airflow.contrib.operators.dataproc_operator import DataprocClusterCreateOperator
 from airflow.contrib.operators.dataproc_operator import DataProcHiveOperator
+from airflow.contrib.operators.dataproc_operator import DataprocClusterCreateOperator
 from airflow.contrib.operators.dataproc_operator import DataprocClusterDeleteOperator
 from airflow.utils.trigger_rule import TriggerRule
-
-
-from airflow.models import Variable
 
 PROJECT_ID = 'gcp-cicd'
 REGION_ID = 'europe-west1'
