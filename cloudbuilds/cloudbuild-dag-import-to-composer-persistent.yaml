@@ -5,31 +5,31 @@ steps:
 
   # github clone
   - name: 'gcr.io/cloud-builders/git'
-    args: ['clone', 'https://github.com/elisska/gcp-cicd.git']
+    args: ['clone', 'https://github.com/elisska/gcp-cicd.git', '/gcp-cicd']
     volumes:
-      - path: '/airflow'
-        name: 'airflow_source'
+      - path: '/gcp-cicd'
+        name: 'repository'
 
   - name: puckel/docker-airflow:latest
     id: 'init'
     args: ['airflow', 'initdb']
     volumes:
-      - path: '/airflow'
-        name: 'airflow_source'
+      - path: '/gcp-cicd'
+        name: 'repository'
       - path: '/usr/local/airflow'
         name: 'airflow_server'
 
   - name: puckel/docker-airflow:latest
     entrypoint: 'python'
     args: ['dags-validation-test.py']
-    dir: './airflow/test/validation/'
+    dir: '/gcp-cicd/airflow/test/validation/'
     id: 'test-validation'
     env:
       - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
-      - 'AIRFLOW__CORE__DAGS_FOLDER=./airflow/dags'
+      - 'AIRFLOW__CORE__DAGS_FOLDER=/gcp-cicd/airflow/dags'
     volumes:
-      - path: '/airflow'
-        name: 'airflow_source'
+      - path: '/gcp-cicd'
+        name: 'repository'
       - path: '/usr/local/airflow'
         name: 'airflow_server'
 
@@ -37,22 +37,22 @@ steps:
     args: ['env']
     id: 'show env'
     volumes:
-      - path: '/airflow'
-        name: 'airflow_source'
+      - path: '/gcp-cicd'
+        name: 'repository'
       - path: '/usr/local/airflow'
         name: 'airflow_server'
 
   - name: puckel/docker-airflow:latest
     entrypoint: 'python'
     args: ['sample-dag-hive-ephemeral-definition-test.py']
-    dir: './airflow/test/definition/'
+    dir: '/gcp-cicd/airflow/test/definition/'
     id: 'test-definition'
     env:
       - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
-      - 'AIRFLOW__CORE__DAGS_FOLDER=./airflow_source/dags'
+      - 'AIRFLOW__CORE__DAGS_FOLDER=/gcp-cicd/airflow/dags'
     volumes:
-      - path: '/airflow'
-        name: 'airflow_source'
+      - path: '/gcp-cicd'
+        name: 'repository'
       - path: '/usr/local/airflow'
         name: 'airflow_server'
 
