@@ -24,7 +24,7 @@ steps:
   - name: puckel/docker-airflow:latest
     id: 'pip_install.sh'
     entrypoint: 'bash'
-    args: ['/gcp-cicd/airflow/pip_install.sh', '/usr/local/airflow/venv', '/gcp-cicd/airflow']
+    args: ['sudo', '-H', '/gcp-cicd/airflow/pip_install.sh', '/usr/local/airflow/venv', '/gcp-cicd/airflow']
     volumes:
       - path: '/gcp-cicd'
         name: 'repository'
