@@ -1,1 +1,1 @@
-# Source code for Airflow component
+Source code for Airflow component
