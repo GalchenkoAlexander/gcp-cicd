@@ -3,12 +3,21 @@ substitutions:
 steps:
   # Run test
 
+  # github clone
+  - name: 'gcr.io/cloud-builders/git'
+    args: ['clone', 'https://github.com/elisska/gcp-cicd.git']
+    volumes:
+      - path: '/airflow'
+        name: 'airflow_source'
+
   - name: puckel/docker-airflow:latest
     id: 'init'
     args: ['airflow', 'initdb']
     volumes:
+      - path: '/airflow'
+        name: 'airflow_source'
       - path: '/usr/local/airflow'
-        name: 'airflow'
+        name: 'airflow_server'
 
   - name: puckel/docker-airflow:latest
     entrypoint: 'python'
@@ -17,9 +26,21 @@ steps:
     id: 'test-validation'
     env:
       - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
+      - 'AIRFLOW__CORE__DAGS_FOLDER=./airflow/dags'
     volumes:
+      - path: '/airflow'
+        name: 'airflow_source'
       - path: '/usr/local/airflow'
-        name: 'airflow'
+        name: 'airflow_server'
+
+  - name: puckel/docker-airflow:latest
+    args: ['env']
+    id: 'show env'
+    volumes:
+      - path: '/airflow'
+        name: 'airflow_source'
+      - path: '/usr/local/airflow'
+        name: 'airflow_server'
 
   - name: puckel/docker-airflow:latest
     entrypoint: 'python'
@@ -28,9 +49,12 @@ steps:
     id: 'test-definition'
     env:
       - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
+      - 'AIRFLOW__CORE__DAGS_FOLDER=./airflow_source/dags'
     volumes:
+      - path: '/airflow'
+        name: 'airflow_source'
       - path: '/usr/local/airflow'
-        name: 'airflow'
+        name: 'airflow_server'
 
   # Copying DAG files to GCS
   - name: 'gcr.io/cloud-builders/gcloud'

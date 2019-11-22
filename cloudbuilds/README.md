@@ -1,7 +1,7 @@
 ## Test and deploy DAGs 
 
 
-To test and deploy to Composer DAG's dir execute next command:
+To test and deploy to Composer DAG's dir execute the next command:
 
 ```
 gcloud builds submit \
