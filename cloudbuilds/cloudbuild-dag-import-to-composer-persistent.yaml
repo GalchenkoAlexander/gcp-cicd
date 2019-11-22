@@ -2,17 +2,35 @@ substitutions:
 
 steps:
   # Run test
-  - name: apache/airflow:master-python3.7-ci
+
+  - name: puckel/docker-airflow:latest
+    id: 'init'
+    args: ['airflow', 'initdb']
+    volumes:
+      - path: '/usr/local/airflow'
+        name: 'airflow'
+
+  - name: puckel/docker-airflow:latest
+    entrypoint: 'python'
+    args: ['dags-validation-test.py']
+    dir: './airflow/test/validation/'
+    id: 'test-validation'
+    env:
+      - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
+    volumes:
+      - path: '/usr/local/airflow'
+        name: 'airflow'
+
+  - name: puckel/docker-airflow:latest
     entrypoint: 'python'
     args: ['sample-dag-hive-ephemeral-definition-test.py']
     dir: './airflow/test/definition/'
     id: 'test-definition'
-
-  - name: apache/airflow:master-python3.7-ci
-    entrypoint: 'python'
-    args: ['sample-dag-hive-ephemeral-validation-test.py']
-    dir: './airflow/test/validation/'
-    id: 'test-validation'
+    env:
+      - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
+    volumes:
+      - path: '/usr/local/airflow'
+        name: 'airflow'
 
   # Copying DAG files to GCS
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -27,6 +45,7 @@ steps:
       - '--source=${_SOURCE}'
 
 
-images: [
-  'apache/airflow:master-python3.7-ci'
-]
+#images: [
+#  'apache/airflow:master-python3.7-ci'
+#  'puckel/docker-airflow:latest'
+#]
