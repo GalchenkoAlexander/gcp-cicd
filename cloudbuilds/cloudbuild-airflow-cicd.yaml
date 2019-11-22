@@ -1,0 +1,75 @@
+substitutions:
+
+steps:
+  # Run test
+
+  # github clone
+  - name: 'gcr.io/cloud-builders/git'
+    args: ['clone', 'https://github.com/elisska/gcp-cicd.git', '/gcp-cicd']
+    volumes:
+      - path: '/gcp-cicd'
+        name: 'repository'
+
+  - name: elisska/docker-airflow:latest
+    id: 'init'
+    args: ['airflow', 'initdb']
+    volumes:
+      - path: '/gcp-cicd'
+        name: 'repository'
+      - path: '/usr/local/airflow'
+        name: 'airflow_server'
+
+  - name: elisska/docker-airflow:latest
+    entrypoint: 'python'
+    args: ['dags-validation-test.py']
+    dir: '/gcp-cicd/airflow/test/validation/'
+    id: 'test-validation'
+    env:
+      - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
+      - 'AIRFLOW__CORE__DAGS_FOLDER=/gcp-cicd/airflow/dags'
+    volumes:
+      - path: '/gcp-cicd'
+        name: 'repository'
+      - path: '/usr/local/airflow'
+        name: 'airflow_server'
+
+  - name: elisska/docker-airflow:latest
+    args: ['env']
+    id: 'show env'
+    volumes:
+      - path: '/gcp-cicd'
+        name: 'repository'
+      - path: '/usr/local/airflow'
+        name: 'airflow_server'
+
+  - name: elisska/docker-airflow:latest
+    entrypoint: 'python'
+    args: ['sample-dag-hive-ephemeral-definition-test.py']
+    dir: '/gcp-cicd/airflow/test/definition/'
+    id: 'test-definition'
+    env:
+      - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
+      - 'AIRFLOW__CORE__DAGS_FOLDER=/gcp-cicd/airflow/dags'
+    volumes:
+      - path: '/gcp-cicd'
+        name: 'repository'
+      - path: '/usr/local/airflow'
+        name: 'airflow_server'
+
+  # Copying DAG files to GCS
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'composer'
+      - 'environments'
+      - 'storage'
+      - 'dags'
+      - 'import'
+      - '--environment=${_COMPOSER_ENV_NAME}'
+      - '--location=${_COMPOSER_REGION}'
+      - '--source=${_SOURCE}'
+
+
+#images: [
+#  'apache/airflow:master-python3.7-ci'
+#  'elisska/docker-airflow:latest'
+#]
