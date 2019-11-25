@@ -1,5 +1,5 @@
 substitutions:
-  _BUILD_BUCKET: gcp-cicd-artifacts1
+  _BUILD_BUCKET: gcp-cicd-artifacts
 
 steps:
   # Run test
@@ -53,27 +53,27 @@ steps:
 
   # Copying DAG files to GCS
   # perhaps this step has to be moved from this build
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args:
-      - 'composer'
-      - 'environments'
-      - 'storage'
-      - 'dags'
-      - 'import'
-      - '--environment=${_COMPOSER_ENV_NAME}'
-      - '--location=${_COMPOSER_REGION}'
-      - '--source=${_SOURCE}'
+#  - name: 'gcr.io/cloud-builders/gcloud'
+#    args:
+#      - 'composer'
+#      - 'environments'
+#      - 'storage'
+#      - 'dags'
+#      - 'import'
+#      - '--environment=${_COMPOSER_ENV_NAME}'
+#      - '--location=${_COMPOSER_REGION}'
+#      - '--source=${_SOURCE}'
 
-# Copying input datasets to GCS
-- name: 'gcr.io/cloud-builders/gsutil'
-  args:
-    - 'cp'
-    - '-r'
-    - '/gcp-cicd/airflow/dags/*'
-    - 'gs://${_BUILD_BUCKET}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/airflow/dags/'
-  volumes:
-    - path: '/gcp-cicd'
-      name: 'repository'
+  # Copying input datasets to GCS
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args:
+      - 'cp'
+      - '-r'
+      - '/gcp-cicd/airflow/dags/*'
+      - 'gs://${_BUILD_BUCKET}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/airflow/dags/'
+    volumes:
+      - path: '/gcp-cicd'
+        name: 'repository'
 
 #images: [
 #  'apache/airflow:master-python3.7-ci'
