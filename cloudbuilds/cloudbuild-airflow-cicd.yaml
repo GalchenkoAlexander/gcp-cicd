@@ -10,6 +10,7 @@ steps:
       - path: '/gcp-cicd'
         name: 'repository'
 
+  # can be moved to docker file
   - name: elisska/docker-airflow:latest
     id: 'init'
     args: ['airflow', 'initdb']
@@ -19,6 +20,7 @@ steps:
       - path: '/usr/local/airflow'
         name: 'airflow_server'
 
+  # run validation tests
   - name: elisska/docker-airflow:latest
     entrypoint: 'python'
     args: ['dags-validation-test.py']
@@ -33,15 +35,7 @@ steps:
       - path: '/usr/local/airflow'
         name: 'airflow_server'
 
-  - name: elisska/docker-airflow:latest
-    args: ['env']
-    id: 'show env'
-    volumes:
-      - path: '/gcp-cicd'
-        name: 'repository'
-      - path: '/usr/local/airflow'
-        name: 'airflow_server'
-
+  # run definition tests
   - name: elisska/docker-airflow:latest
     entrypoint: 'python'
     args: ['sample-dag-hive-ephemeral-definition-test.py']
@@ -57,6 +51,7 @@ steps:
         name: 'airflow_server'
 
   # Copying DAG files to GCS
+  # perhaps this step has to be moved from this build
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'composer'

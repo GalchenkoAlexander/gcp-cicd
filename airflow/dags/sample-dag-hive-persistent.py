@@ -47,6 +47,4 @@ with DAG(dag_id='hive-query-submit',
         task_id='DummyTask'
     )
 
-    # dummy_task >> run_cluster_task
-    # run_cluster_task >> submit_hive_task
     dummy_task >> submit_hive_task

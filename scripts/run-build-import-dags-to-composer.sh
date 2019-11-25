@@ -10,5 +10,4 @@ gcloud builds submit \
 _COMPOSER_ENV_NAME=${COMPOSER_ENV_NAME},\
 _COMPOSER_REGION=${COMPOSER_REGION},\
 _SOURCE=./airflow/dags/sample-dag-hive-persistent.py \
---config=./cloudbuilds/cloudbuild-dag-import-to-composer-persistent.yaml .
-
+--config=./cloudbuilds/cloudbuild-airflow-cicd.yaml
