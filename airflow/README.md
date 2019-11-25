@@ -1,2 +1,1 @@
-## Overview
-    Airflow DAG that triggeres Dataproc Workflow template
+Source code for Airflow component

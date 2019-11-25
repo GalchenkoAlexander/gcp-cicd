@@ -1,14 +1,15 @@
 substitutions:
+  _BUILD_BUCKET: gcp-cicd-artifacts1
 
 steps:
   # Run test
 
   # github clone
-  - name: 'gcr.io/cloud-builders/git'
-    args: ['clone', 'https://github.com/elisska/gcp-cicd.git', '/gcp-cicd']
-    volumes:
-      - path: '/gcp-cicd'
-        name: 'repository'
+- name: 'gcr.io/cloud-builders/git'
+  args: ['clone', 'https://github.com/elisska/gcp-cicd.git', '/gcp-cicd']
+  volumes:
+    - path: '/gcp-cicd'
+      name: 'repository'
 
   # can be moved to docker file
   - name: elisska/docker-airflow:latest
@@ -63,6 +64,16 @@ steps:
       - '--location=${_COMPOSER_REGION}'
       - '--source=${_SOURCE}'
 
+# Copying input datasets to GCS
+- name: 'gcr.io/cloud-builders/gsutil'
+  args:
+    - 'cp'
+    - '-r'
+    - '/gcp-cicd/airflow/dags/*'
+    - 'gs://${_BUILD_BUCKET}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/airflow/dags/'
+  volumes:
+    - path: '/gcp-cicd'
+      name: 'repository'
 
 #images: [
 #  'apache/airflow:master-python3.7-ci'
