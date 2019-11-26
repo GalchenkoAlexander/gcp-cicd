@@ -1,0 +1,79 @@
+steps:
+
+  # get init_actions itself
+  - name: 'gcr.io/cloud-builders/git'
+    args: ['clone', 'https://github.com/elisska/gcp-cicd.git', 'dataproc-samples']
+    volumes:
+      - path: '/dataproc-samples'
+        name: 'repository'
+
+  # copy init actions to GCS
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args:
+      - 'cp'
+      - '-r'
+      - './dataproc-samples/hive/*.sh'
+      - 'gs://${_BUILD_BUCKET}/init-actoins/'
+    volumes:
+      - path: '/dataproc-samples'
+        name: 'repository'
+
+  ## create single node dataproc cluster
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'dataproc'
+      - 'clusters'
+      - 'create'
+      - '${_CLUSTER_NAME}'
+      - '--region=${_REGION}'
+      - '--zone=${_ZONE}'
+      - '--master-machine-type=n1-standard-1'
+      - '--num-workers=2'
+      - '--worker-machine-type=n1-standard-1'
+      - '--initialization-actions=gs://${_BUILD_BUCKET}/init-actoins/add_hive_jars.sh'
+      - '--metadata=hive-aux-libs=gs://${_BUILD_BUCKET}/hive-aux-libs/'
+
+  ## Run teragen test
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'dataproc'
+      - 'jobs'
+      - 'submit'
+      - 'hadoop'
+      - '--cluster=${_CLUSTER_NAME}'
+      - '--region=${_REGION}'
+      - '--class=org.apache.hadoop.examples.terasort.TeraGen'
+      - '--jars=file:///usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples.jar'
+      - '--'
+      - '100'
+      - 'gs://${_BUILD_BUCKET}/test/output/teragen_output'
+
+  ## Run pi-spark test
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'dataproc'
+      - 'jobs'
+      - 'submit'
+      - 'spark'
+      - '--cluster=${_CLUSTER_NAME}'
+      - '--region=${_REGION}'
+      - '--jars=file:///usr/lib/spark/examples/jars/spark-examples.jar'
+      - '--class=org.apache.spark.examples.JavaSparkPi'
+      - '--'
+      - '3'
+
+  # delete single node dataproc cluster
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'dataproc'
+      - 'clusters'
+      - 'delete'
+      - '${_CLUSTER_NAME}'
+      - '--region=${_REGION}'
+
+  # remove resources
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args:
+      - 'rm'
+      - '-r'
+      - 'gs://${_BUILD_BUCKET}/init-actoins'
