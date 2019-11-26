@@ -3,7 +3,7 @@
 source ./env.sh
 
 gcloud builds submit \
---config=../cloudbuilders/ci_init_actions_multi_node_dataproc_cluster.yaml \
+--config=../cloudbuilds/ci_init_actions_multi_node_dataproc_cluster.yaml \
 --substitutions=\
 _CLUSTER_NAME=gcp-cicd-dataproc-cluster,\
 _REGION=us-central1,\
