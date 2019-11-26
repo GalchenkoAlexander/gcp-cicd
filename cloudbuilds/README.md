@@ -16,7 +16,7 @@ This cloud builds have next steps:
 
 Run this build to use command:
 
-#### Single node cluster
+#### Single node cluster:
 ```
 gcloud builds submit \
 --config=./cloudbuilders/ci_init_actions_single_node_dataproc_cluster.yaml \
@@ -27,7 +27,7 @@ _REGION=<REGION>,\
 _ZONE=<ZONE>
 ```
 
-#### Multi node cluster
+#### Multi node cluster:
 ```
 gcloud builds submit \
 --config=./cloudbuilders/ci_init_actions_multi_node_dataproc_cluster.yaml \
@@ -38,7 +38,15 @@ _REGION=<REGION>,\
 _ZONE=<ZONE>
 ```
 
-#### HA cluster
-TODO
+#### HA cluster:
+```
+gcloud builds submit \
+--config=./cloudbuilders/ci_init_actions_ha_dataproc_cluster.yaml \
+--substitutions=\
+_BUILD_BUCKET=${BUILD_BUCKET}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA},\
+_CLUSTER_NAME=<CLUSTER_NAME>,\
+_REGION=<REGION>,\
+_ZONE=<ZONE>
+```
 
-#### Auto-Scaling cluster
+#### Auto-Scaling cluster:
