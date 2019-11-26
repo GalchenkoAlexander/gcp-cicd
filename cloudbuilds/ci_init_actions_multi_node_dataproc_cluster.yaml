@@ -12,8 +12,8 @@ steps:
     args:
       - 'cp'
       - '-r'
-      - './dataproc-samples/hive/*.sh'
-      - 'gs://${_BUILD_BUCKET}/init-actoins/'
+      - './dataproc-samples/init-actions/*.sh'
+      - 'gs://${_BUILD_BUCKET}/temp/init-actoins/'
     volumes:
       - path: '/dataproc-samples'
         name: 'repository'
@@ -30,7 +30,7 @@ steps:
       - '--master-machine-type=n1-standard-1'
       - '--num-workers=2'
       - '--worker-machine-type=n1-standard-1'
-      - '--initialization-actions=gs://${_BUILD_BUCKET}/init-actoins/add_hive_jars.sh'
+      - '--initialization-actions=gs://${_BUILD_BUCKET}/temp/init-actoins/add_hive_jars.sh'
       - '--metadata=hive-aux-libs=gs://${_BUILD_BUCKET}/hive-aux-libs/'
 
   ## Run teragen test
@@ -71,9 +71,17 @@ steps:
       - '${_CLUSTER_NAME}'
       - '--region=${_REGION}'
 
+  # copy to work dir
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args:
+      - 'cp'
+      - '-r'
+      - 'gs://${_BUILD_BUCKET}/temp/init-actoins'
+      - 'gs://${_BUILD_BUCKET}/init-actoins'
+
   # remove resources
   - name: 'gcr.io/cloud-builders/gsutil'
     args:
       - 'rm'
       - '-r'
-      - 'gs://${_BUILD_BUCKET}/init-actoins'
+      - 'gs://${_BUILD_BUCKET}/temp/init-actoins'
