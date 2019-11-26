@@ -36,12 +36,25 @@ steps:
       - 'clusters'
       - 'create'
       - '${_CLUSTER_NAME}'
-      - '--single-node'
       - '--region=${_REGION}'
       - '--zone=${_ZONE}'
-      - '--autoscaling-policy=gs://${_BUILD_BUCKET}/temp/autoscaling/autoscaling-policy.yaml'
+      - '--master-machine-type=n1-standard-1'
+      - '--worker-machine-type=n1-standard-1'
+      - '--num-workers=1'
+      - '--master-boot-disk-size=15'
+      - '--worker-boot-disk-size=15'
+#      - '--autoscaling-policy=gs://${_BUILD_BUCKET}/temp/autoscaling/autoscaling-policy.yaml'
       - '--initialization-actions=gs://${_BUILD_BUCKET}/temp/init-actoins/add_hive_jars.sh'
       - '--metadata=hive-aux-libs=gs://${_BUILD_BUCKET}/hive-aux-libs/'
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'dataproc'
+      - 'autoscaling-policies'
+      - 'import'
+      - '--region=${_REGION}'
+      - 'general-policy'
+      - '--source=gs://${_BUILD_BUCKET}/temp/autoscaling/autoscaling-policy.yaml'
 
   ## Run teragen test
   - name: 'gcr.io/cloud-builders/gcloud'

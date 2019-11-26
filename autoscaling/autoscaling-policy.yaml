@@ -1,9 +1,9 @@
 workerConfig:
-  maxInstances: 100
+  maxInstances: 10
 secondaryWorkerConfig:
-  maxInstances: 50
+  maxInstances: 5
 basicAlgorithm:
-  cooldownPeriod: 2m
+  cooldownPeriod: 1m
   yarnConfig:
     scaleUpFactor: 0.05
     scaleDownFactor: 1.0
