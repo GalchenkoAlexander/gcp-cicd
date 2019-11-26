@@ -18,21 +18,28 @@ steps:
       - path: '/dataproc-samples'
         name: 'repository'
 
-  ## create single node dataproc cluster
+  # copy autoscaling-policy
+  - name: 'gcr.io/cloud-builders/gsutil'
+    args:
+      - 'cp'
+      - '-r'
+      - './dataproc-samples/autoscaling/autoscaling-policy.yaml'
+      - 'gs://${_BUILD_BUCKET}/temp/autoscaling/'
+    volumes:
+      - path: '/dataproc-samples'
+        name: 'repository'
+
+  ## create single node autoscaling dataproc cluster
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'dataproc'
       - 'clusters'
       - 'create'
       - '${_CLUSTER_NAME}'
+      - '--single-node'
       - '--region=${_REGION}'
       - '--zone=${_ZONE}'
-      - '--num-masters=3'
-      - '--num-workers=2'
-      - '--master-machine-type=n1-standard-1'
-      - '--worker-machine-type=n1-standard-1'
-      - '--master-boot-disk-size=15'
-      - '--worker-boot-disk-size=15'
+      - '--autoscaling-policy=gs://${_BUILD_BUCKET}/temp/autoscaling/autoscaling-policy.yaml'
       - '--initialization-actions=gs://${_BUILD_BUCKET}/temp/init-actoins/add_hive_jars.sh'
       - '--metadata=hive-aux-libs=gs://${_BUILD_BUCKET}/hive-aux-libs/'
 
