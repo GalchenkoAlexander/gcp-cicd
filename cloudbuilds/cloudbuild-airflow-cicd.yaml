@@ -5,11 +5,11 @@ steps:
   # Run test
 
   # github clone
-- name: 'gcr.io/cloud-builders/git'
-  args: ['clone', 'https://github.com/elisska/gcp-cicd.git', '/gcp-cicd']
-  volumes:
-    - path: '/gcp-cicd'
-      name: 'repository'
+  - name: 'gcr.io/cloud-builders/git'
+    args: ['clone', 'https://github.com/elisska/gcp-cicd.git', '/gcp-cicd']
+    volumes:
+      - path: '/gcp-cicd'
+        name: 'repository'
 
   # can be moved to docker file
   - name: elisska/docker-airflow:latest
@@ -52,7 +52,7 @@ steps:
         name: 'airflow_server'
 
   # Copying DAG files to GCS
-  # perhaps this step has to be moved from this build
+  # this step has to be removed from this build because it is a part of CD process, not CI
 #  - name: 'gcr.io/cloud-builders/gcloud'
 #    args:
 #      - 'composer'
@@ -64,7 +64,7 @@ steps:
 #      - '--location=${_COMPOSER_REGION}'
 #      - '--source=${_SOURCE}'
 
-  # Copying input datasets to GCS
+  # Copying DAG files to GCS
   - name: 'gcr.io/cloud-builders/gsutil'
     args:
       - 'cp'
