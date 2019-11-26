@@ -1,0 +1,14 @@
+{
+  "bucket": "builds-2",
+  "repository": "gcptest",
+  "components": {
+    "spark-app-1": {
+      "type": "sparkJob",
+      "assets": [
+        {
+          "glob": "./target/scala-2.11/*.jar"
+        }
+      ]
+    }
+  }
+}
