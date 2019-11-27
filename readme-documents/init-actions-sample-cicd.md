@@ -51,3 +51,12 @@ _ZONE=<ZONE>
 ```
 
 #### Auto-Scaling cluster
+```
+gcloud builds submit \
+--config=../cloudbuilds/ci_init_actions_as_dataproc_cluster.yaml \
+--substitutions=\
+_BUCKET_NAME=${BUCKET_NAME},\
+_CLUSTER_NAME=<CLUSTER_NAME>,\
+_REGION=<REGION>,\
+_ZONE=<ZONE>
+```
