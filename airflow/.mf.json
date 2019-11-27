@@ -1,0 +1,22 @@
+{
+  "bucket": "gcp-cicd-artifacts",
+  "repository": "gcp-cicd",
+  "components": {
+    "airflow-dag": {
+      "type": "airflow-dag",
+      "assets": [
+        {
+          "glob": "./dags/*.py"
+        }
+      ]
+    },
+    "airflow-plugin": {
+      "type": "airflow-plugin",
+      "assets": [
+        {
+          "glob": "./plugins/*"
+        }
+      ]
+    }
+  }
+}

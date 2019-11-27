@@ -1,81 +1,43 @@
-substitutions:
-  _BUILD_BUCKET: gcp-cicd-artifacts
-
 steps:
-  # Run test
-
-  # github clone
-  - name: 'gcr.io/cloud-builders/git'
-    args: ['clone', 'https://github.com/elisska/gcp-cicd.git', '/gcp-cicd']
-    volumes:
-      - path: '/gcp-cicd'
-        name: 'repository'
-
   # can be moved to docker file
   - name: elisska/docker-airflow:latest
-    id: 'init'
+    id: 'airflow-initdb'
     args: ['airflow', 'initdb']
     volumes:
-      - path: '/gcp-cicd'
-        name: 'repository'
       - path: '/usr/local/airflow'
         name: 'airflow_server'
 
   # run validation tests
   - name: elisska/docker-airflow:latest
     entrypoint: 'python'
-    args: ['dags-validation-test.py']
-    dir: '/gcp-cicd/airflow/test/validation/'
+    args: ['test/validation/dags-validation-test.py']
+    dir: 'airflow/'
     id: 'test-validation'
     env:
       - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
-      - 'AIRFLOW__CORE__DAGS_FOLDER=/gcp-cicd/airflow/dags'
+      - 'AIRFLOW__CORE__DAGS_FOLDER=dags/'
     volumes:
-      - path: '/gcp-cicd'
-        name: 'repository'
       - path: '/usr/local/airflow'
         name: 'airflow_server'
 
   # run definition tests
   - name: elisska/docker-airflow:latest
     entrypoint: 'python'
-    args: ['sample-dag-hive-ephemeral-definition-test.py']
-    dir: '/gcp-cicd/airflow/test/definition/'
+    args: ['test/definition/sample-dag-hive-ephemeral-definition-test.py']
+    dir: 'airflow/'
     id: 'test-definition'
     env:
       - 'AIRFLOW__CORE__LOAD_EXAMPLES=False'
-      - 'AIRFLOW__CORE__DAGS_FOLDER=/gcp-cicd/airflow/dags'
+      - 'AIRFLOW__CORE__DAGS_FOLDER=./dags'
     volumes:
-      - path: '/gcp-cicd'
-        name: 'repository'
       - path: '/usr/local/airflow'
         name: 'airflow_server'
 
-  # Copying DAG files to GCS
-  # this step has to be removed from this build because it is a part of CD process, not CI
-#  - name: 'gcr.io/cloud-builders/gcloud'
-#    args:
-#      - 'composer'
-#      - 'environments'
-#      - 'storage'
-#      - 'dags'
-#      - 'import'
-#      - '--environment=${_COMPOSER_ENV_NAME}'
-#      - '--location=${_COMPOSER_REGION}'
-#      - '--source=${_SOURCE}'
-
-  # Copying DAG files to GCS
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args:
-      - 'cp'
-      - '-r'
-      - '/gcp-cicd/airflow/dags/*'
-      - 'gs://${_BUILD_BUCKET}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/airflow/dags/'
-    volumes:
-      - path: '/gcp-cicd'
-        name: 'repository'
-
-#images: [
-#  'apache/airflow:master-python3.7-ci'
-#  'elisska/docker-airflow:latest'
-#]
+    # Copying DAG files to GCS
+  - name: gcr.io/$PROJECT_ID/manifest-util
+    args: ['--git_sha', '$COMMIT_SHA',
+           '--git_brunch', '$BRANCH_NAME',
+           '--build_id', '$BUILD_ID',
+           '--upload' ]
+    id: 'set-manifest'
+    dir: 'airflow/'
