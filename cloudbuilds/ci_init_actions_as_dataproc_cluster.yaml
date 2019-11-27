@@ -1,10 +1,8 @@
-substitutions:
-  _BUILD_BUCKET: ${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}
-
 steps:
 
   # get init_actions itself
   - name: 'gcr.io/cloud-builders/git'
+    id: 'clone_repo'
     args: ['clone', 'https://github.com/elisska/gcp-cicd.git', 'dataproc-samples']
     volumes:
       - path: '/dataproc-samples'
@@ -12,30 +10,33 @@ steps:
 
   # copy init actions to GCS
   - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'copy_resources'
     args:
       - 'cp'
       - '-r'
       - './dataproc-samples/init-actions/*.sh'
-      - 'gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/temp/init-actoins/'
+      - 'gs://${_BUCKET_NAME}/$REPO_NAME/$BRANCH_NAME/$SHORT_SHA/temp/init-actoins/'
     volumes:
       - path: '/dataproc-samples'
         name: 'repository'
 
   # import autoscaling-policy
   - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'import_auto_scaling_policy'
     args:
       - 'dataproc'
       - 'autoscaling-policies'
       - 'import'
       - '--region=${_REGION}'
-      - 'general-policy-${_REGION}-${_SHORT_SHA}'
+      - 'general-policy-${_REGION}-${SHORT_SHA}'
       - '--source=dataproc-samples/autoscaling/autoscaling-policy.yaml'
     volumes:
       - path: '/dataproc-samples'
         name: 'repository'
 
-  ## create single node autoscaling dataproc cluster
+  ## create autoscaling dataproc cluster
   - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'create_autoscaling_dataproc_cluster'
     args:
       - 'dataproc'
       - 'clusters'
@@ -48,15 +49,16 @@ steps:
       - '--num-workers=2'
       - '--master-boot-disk-size=15'
       - '--worker-boot-disk-size=15'
-      - '--autoscaling-policy=general-policy-${_REGION}-${_SHORT_SHA}'
-      - '--initialization-actions=gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/temp/init-actoins/add_hive_jars.sh'
-      - '--metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/hive-aux-libs/'
+      - '--autoscaling-policy=general-policy-${_REGION}-${SHORT_SHA}'
+      - '--initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/init-actoins/add_hive_jars.sh'
+      - '--metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive-aux-libs/'
     volumes:
       - path: '/dataproc-samples'
         name: 'repository'
 
   ## Run teragen test
   - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'run_teragen_test'
     args:
       - 'dataproc'
       - 'jobs'
@@ -67,12 +69,13 @@ steps:
       - '--class=org.apache.hadoop.examples.terasort.TeraGen'
       - '--jars=file:///usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples.jar'
       - '--'
-      - '1000000'
-      - 'gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/temp/test/output/teragen_output'
+      - '100000000'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/test/output/teragen_output'
 
 
   ## Run pi-spark test
   - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'run_pi_spark_test'
     args:
       - 'dataproc'
       - 'jobs'
@@ -85,8 +88,9 @@ steps:
       - '--'
       - '3'
 
-  ## delete single node dataproc cluster
+  ## delete dataproc cluster
   - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'delete_autoscaling_dataproc_cluster'
     args:
       - 'dataproc'
       - 'clusters'
@@ -96,25 +100,27 @@ steps:
 
   ## delete policy
   - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'delete_auto_scaling_policy'
     args:
-      - 'gcloud'
       - 'dataproc'
       - 'autoscaling-policies'
       - 'delete'
       - '--region=${_REGION}'
-      - "general-policy-${_REGION}-${_SHORT_SHA}"
+      - "general-policy-${_REGION}-${SHORT_SHA}"
 
   # copy to work dir
   - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'copy_to_work_dir'
     args:
       - 'cp'
       - '-r'
-      - 'gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/temp/init-actoins'
-      - 'gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/init-actoins'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/init-actoins'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/init-actoins'
 
   # remove temp resources
   - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'remove_temp_resources'
     args:
       - 'rm'
       - '-r'
-      - 'gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/temp'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp'
