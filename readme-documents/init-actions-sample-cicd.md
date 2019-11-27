@@ -7,13 +7,15 @@ CI process for init actions scripts.
 - auto-scaling: `cloudbuilds/ci_init_actions_as_dataproc_cluster.yaml`
 
 This cloud builds are perform next steps:
-- clone init actions script files to temp GCS 
+- clone init action script files and other resources to temp GCS dir
+- import autoscaling-policy (for Auto-Scaling cluster only)
 - create dataproc cluster with using these scripts
-- submit teragen job to testing
-- submit spark PI job to testing
+- submit teragen job for testing
+- submit spark PI job for testing
 - delete dataproc cluster
+- delete autoscaling-policy (for Auto-Scaling cluster only)
 - copy init actions script files to a permanent GCS
-- remove init actions script files from temp GCS
+- delete temp dir from GCS 
 
 Use these command to run build:
 
