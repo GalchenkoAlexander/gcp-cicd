@@ -10,12 +10,12 @@ import requests
 import requests.auth
 from google.cloud import storage
 
-from mf.config import MfFile, BuildInfo
+from mf.config import LocalConfFile, BuildInfo
 
 MANIFEST_NAME = 'manifest.json'
 
 
-class Storage:
+class _Storage:
 
     def __init__(self, bucket, semantic_name):
         credentials, _ = google.auth.default()
@@ -105,17 +105,17 @@ class Manifest(object):
         self._bucket = bucket
         self._repo_name = repo_name
 
-        self._storage = Storage(bucket, repo_name)
-        self.__fetch()
+        self._storage = _Storage(bucket, repo_name)
+        self.__fetch_manifest()
 
-    def __fetch(self):
+    def __fetch_manifest(self):
         blob, content = self._storage.fetch_manifest()
 
-        self._content = content
+        self._original_content = content
         self._version = blob.generation
         self._blob_key = blob.name
 
-    def update(self, build: BuildInfo, m_file: MfFile, upload: bool = True):
+    def update(self, build: BuildInfo, m_file: LocalConfFile, upload: bool = True):
         """
         Compare and update blob by generation.
         Trying until success.
@@ -130,60 +130,71 @@ class Manifest(object):
         refs_upload_done = False
 
         while True:
-            current_manifest, refs = merge_new_manifest(self._content, build, m_file)
+            current_manifest, assets = merge_new_manifest(self._original_content, build, m_file)
 
             if not upload:
                 return current_manifest
 
+            #
+            # Upload assets first and update manifest only after it.
+            #
             if not refs_upload_done:
-                #
-                # Upload assets first and update manifest only after it.
-                #
                 refs_upload_done = True
-                for ref in refs:
-                    self._storage.upload(ref['bucket'], ref['key'], ref['file'])
+                assets.save(self._storage)
 
             ok, err_resp = self._storage.cas_blob(data=json.dumps(current_manifest).encode('utf-8'),
                                                   generation=self._version,
                                                   bucket_name=self._bucket,
                                                   blob_name=self._blob_key)
             if ok:
-                break
+                return current_manifest
             elif err_resp is None:
                 # TODO any logic to resolve conflict in the content ?
                 logging.warning("manifest have already been modified, retry...")
-                self.__fetch()
+                self.__fetch_manifest()
             else:
                 logging.error("update failed [%s] %s", err_resp.status_code, err_resp.text)
                 raise Exception('GoogleStorage update failed')
 
 
+class Assets(dict):
 
-def merge_new_manifest(content, build: BuildInfo, m_file: MfFile) -> Tuple[dict, dict]:
+    def __init__(self, bucket, **kwargs):
+        super().__init__(**kwargs)
+        self.bucket = bucket
+
+    def ref(self, key, file) -> str:
+        if key not in self:
+            self[key] = file
+
+        return f'gs://{self.bucket}/{key}'
+
+    def save(self, storage: _Storage):
+        for key, file in self.items():
+            storage.upload(self.bucket, key, file)
+
+
+def merge_new_manifest(original_manifest: dict, build: BuildInfo, mf_file: LocalConfFile) -> Tuple[dict, Assets]:
     """
     Merge generated manifest about branch into fetched from remote.
 
+    :param original_manifest: original manifest content
     :param build: build info
-    :param m_file: config file
+    :param mf_file: config file
     :return: resulting whole manifest and assets
     """
-    current_manifest = copy.deepcopy(content)
+
+    import datetime, time
+
+    current_manifest = copy.deepcopy(original_manifest)
     ns_key = '@ns'
     ns = current_manifest.get(ns_key, {})
 
-    refs_to_upload = dict()
+    # save to the same bucket where is the manifest
+    assets = Assets(bucket=mf_file.bucket)
 
-    def __append_ref(component: str, file: Path):
-        asset = {
-            'key': f'{m_file.repository}/{build.git_branch}/{build.git_sha}/{component}/{file.name}',
-            'bucket': m_file.bucket,
-            'file': file
-        }
-
-        if asset['key'] not in refs_to_upload:
-            refs_to_upload[asset['key']] = asset
-
-        return f'gs://{asset["bucket"]}/{asset["key"]}'
+    def mk_ref_key(component_name, file):
+        return f'{mf_file.repository}/{build.git_branch}/{build.git_sha}/{component_name}/{file.name}'
 
     component_dict = dict(
         [(component.name, {
@@ -191,14 +202,14 @@ def merge_new_manifest(content, build: BuildInfo, m_file: MfFile) -> Tuple[dict,
             "@metadata": {},
             "@binaries": [{
                 "@md5": md5,
-                "@ref": __append_ref(component.name, file)
+                "@ref": assets.ref(key=mk_ref_key(component.name, file), file=file)
             } for file, md5 in component.assets]
-        }) for component in m_file.components]
+        }) for component in mf_file.components]
     )
 
     ns[build.git_branch] = {
         "@last_success": {
-            "@built_at": build.date,
+            "@built_at": build.date.replace(tzinfo=datetime.timezone.utc).isoformat(),
             "@rev": build.git_sha,
             "@include": component_dict
         }
@@ -207,4 +218,4 @@ def merge_new_manifest(content, build: BuildInfo, m_file: MfFile) -> Tuple[dict,
     if ns_key not in current_manifest:
         current_manifest[ns_key] = ns
 
-    return current_manifest, refs_to_upload
+    return current_manifest, assets
