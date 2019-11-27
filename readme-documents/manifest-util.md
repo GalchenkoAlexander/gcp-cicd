@@ -14,14 +14,14 @@ Configuration file contains static description of the project and produced artif
 
 
 Structure of a project that we assume:
- - Project are represented by **semantic name**. 
-   It can be repository name (like GitHub repo, or any human readable name of the project) 
-   
-- Project contains one or many **components**. It’s useful to take it as if the project 
+ - Project are represented by **semantic name**.
+   It can be repository name (like GitHub repo, or any human readable name of the project)
+
+- Project contains one or many **components**. It’s useful to take it as if the project
   contains several semantic parts (a.k.a. modules). For example:
-  - Project **my-bigdata-app-1** contains 2 submodules (Luigi python scripts and spark app). 
+  - Project **my-bigdata-app-1** contains 2 submodules (Luigi python scripts and spark app).
     Make sense to separate them on 2 components: **luigi-scripts** and **spark-app**
-  - Project **my-maven-app** is a plain maven application. Well it produces only one artifact and make 
+  - Project **my-maven-app** is a plain maven application. Well it produces only one artifact and make
     sense to use one component for it.
 
 - Each component produces one or more assets or artifacts.
@@ -52,7 +52,7 @@ This structure is configured solely through the JSON .mf.json file stored (by de
 - components (type: object)
     - each key is a name of the component
     - each value is a component's config
-- type (type: string) type of component, TBD 
+- type (type: string) type of component, TBD
 - assets (type: array) config for assets
   - glob (type: string) unix pattern, every found file by pattend will be uploaded separatly and added into manifest.json
 
@@ -96,6 +96,10 @@ This structure is configured solely through the JSON .mf.json file stored (by de
 
 TBD
 
-## Integration testing
 
-TBD
+## Build
+
+```
+gcloud builds submit \
+--config=./cloudbuilds/cloudbuild-manifest-util.yaml .
+```

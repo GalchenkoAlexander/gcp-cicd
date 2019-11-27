@@ -4,43 +4,16 @@ steps:
 #- name: 'gcr.io/cloud-builders/git'
 #  args: ['clone', 'https://github.com/GalchenkoAlexander/ch17-hive.git']
 
-# Copying hive files to GCS
-- name: 'gcr.io/cloud-builders/gsutil'
-  args:
-  - 'cp'
-  - 'hive/src/main/scripts/*'
-  - 'gs://${_BUILD_BUCKET}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/scripts/'
-  volumes:
-    - path: '/.'
-      name: 'source'
 
 # Exec maven package
 - name: 'gcr.io/cloud-builders/mvn'
-  args: ['package', '-DoutputDirectory=target']
-  volumes:
-    - path: '/target'
-      name: 'target'
+  args: ['package']
+  dir: 'hive/'
 
-# Copying jars files to GCS
-- name: 'gcr.io/cloud-builders/gsutil'
-  args:
-    - 'cp'
-    - '-r'
-    - 'target/*.jar'
-    - 'gs://${_BUILD_BUCKET}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/jars/'
-  volumes:
-    - path: '/target'
-      name: 'target'
-
-# Copying input datasets to GCS
-- name: 'gcr.io/cloud-builders/gsutil'
-  args:
-    - 'cp'
-    - '-r'
-    - '/source/hive/src/main/test/resources/input/*'
-    - 'gs://${_BUILD_BUCKET}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive/input/'
-
-substitutions:
-  _BUILD_BUCKET: gcp-cicd
-
-
+- name: gcr.io/$PROJECT_ID/manifest-util
+  args: ['--git_sha', '$COMMIT_SHA',
+         '--git_brunch', '$BRANCH_NAME',
+         '--build_id', '$BUILD_ID',
+         '--upload' ]
+  id: 'set-manifest'
+  dir: 'hive/'

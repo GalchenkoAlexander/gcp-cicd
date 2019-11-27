@@ -1,0 +1,22 @@
+{
+  "bucket": "builds-2",
+  "repository": "gcptest",
+  "components": {
+    "hive-scripts": {
+      "type": "hiveJob",
+      "assets": [
+        {
+          "glob": "./src/main/hive-hql/**/*"
+        }
+      ]
+    },
+    "hive-udf": {
+      "type": "hiveUdf",
+      "assets": [
+        {
+          "glob": "./target/*.jar"
+        }
+      ]
+    }
+  }
+}

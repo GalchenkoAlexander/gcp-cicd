@@ -28,7 +28,7 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 setup(
-    name="mf",
+    name="mfutil",
     version=get_version("mf/__init__.py"),
     description="The command line tool for manifest generation",
     long_description=long_description,
@@ -42,10 +42,11 @@ setup(
     packages = find_packages(),
     install_requires=[
           'google-cloud-storage==1.23.0',
+          'jsonschema'
     ],
     entry_points={
         "console_scripts": [
-            "mf=mf.cli:main"
+            "mfutil=mf.cli:main"
         ],
     },
     zip_safe=False,

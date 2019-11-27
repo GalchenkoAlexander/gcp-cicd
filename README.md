@@ -7,8 +7,11 @@ Here they are:
 * [Sample CI/CD for Spark job on ephemeral cluster](readme-documents/spark-sample-ephemeral.md)
 * [Sample CI/CD for Airflow DAG](readme-documents/airflow-sample-ci-cd.md)
 
+Manifest:
+* [manifest util](readme-documents/manifest-util.md)
+
+
 Used GCP services:
 * Cloud Build
 * Cloud Composer
 * Cloud Dataproc
-

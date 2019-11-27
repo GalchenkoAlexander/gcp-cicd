@@ -1,9 +1,7 @@
-import logging
 import copy
 import json
-import logging
 from pathlib import Path
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict
 
 import google
 import requests
@@ -11,6 +9,7 @@ import requests.auth
 from google.cloud import storage
 
 from mf.config import LocalConfFile, BuildInfo
+from mf.log import LOGGER
 
 MANIFEST_NAME = 'manifest.json'
 
@@ -40,8 +39,8 @@ class _Storage:
         str_ = manifest_blob.download_as_string()
         json_ = json.loads(str_)
 
-        logging.info('fetching manifest blob %s', manifest_blob)
-        return (manifest_blob, json_)
+        LOGGER.info('Fetching manifest gcs blob %s', manifest_blob)
+        return manifest_blob, json_
 
     def cas_blob(self, data: bytes, generation: int, bucket_name: str, blob_name: str) -> Tuple[
         bool, Optional[requests.Response]]:
@@ -94,7 +93,6 @@ class _Storage:
         :return:
         """
         blob: storage.client.Blob = self._storage_client.bucket(bucket).blob(key)
-        logging.info("uploading %s [%s]", blob, file)
         blob.upload_from_file(file)
 
 
@@ -150,28 +148,36 @@ class Manifest(object):
                 return current_manifest
             elif err_resp is None:
                 # TODO any logic to resolve conflict in the content ?
-                logging.warning("manifest have already been modified, retry...")
+                LOGGER.warning("manifest have already been modified, retry...")
                 self.__fetch_manifest()
             else:
-                logging.error("update failed [%s] %s", err_resp.status_code, err_resp.text)
+                LOGGER.error("update failed [%s] %s", err_resp.status_code, err_resp.text)
                 raise Exception('GoogleStorage update failed')
 
 
-class Assets(dict):
+class Assets:
 
     def __init__(self, bucket, **kwargs):
         super().__init__(**kwargs)
         self.bucket = bucket
+        self._refs: Dict[str, Tuple[Path, str]] = dict()
 
-    def ref(self, key, file) -> str:
-        if key not in self:
-            self[key] = file
+    def ref(self, key, file: Path) -> str:
+        url = f'gs://{self.bucket}/{key}'
 
-        return f'gs://{self.bucket}/{key}'
+        if key not in self._refs:
+            self._refs[key] = (file.absolute(), url)
 
-    def save(self, storage: _Storage):
-        for key, file in self.items():
-            storage.upload(self.bucket, key, file)
+        return url
+
+    def save(self, _storage: _Storage):
+
+        for key, (file, url) in self._refs.items():
+            LOGGER.info("Uploading %s [%s]", file, url)
+
+            # noinspection PyTypeChecker
+            with open(file, 'rb') as f:
+                _storage.upload(self.bucket, key, f)
 
 
 def merge_new_manifest(original_manifest: dict, build: BuildInfo, mf_file: LocalConfFile) -> Tuple[dict, Assets]:
@@ -194,6 +200,7 @@ def merge_new_manifest(original_manifest: dict, build: BuildInfo, mf_file: Local
     assets = Assets(bucket=mf_file.bucket)
 
     def mk_ref_key(component_name, file):
+        LOGGER.info("[%s] discovering asset %s", component_name, file)
         return f'{mf_file.repository}/{build.git_branch}/{build.git_sha}/{component_name}/{file.name}'
 
     component_dict = dict(
@@ -211,6 +218,7 @@ def merge_new_manifest(original_manifest: dict, build: BuildInfo, mf_file: Local
         "@last_success": {
             "@built_at": build.date.replace(tzinfo=datetime.timezone.utc).isoformat(),
             "@rev": build.git_sha,
+            "@build_id": build.build_id,
             "@include": component_dict
         }
     }
