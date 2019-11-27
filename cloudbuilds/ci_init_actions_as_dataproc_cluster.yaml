@@ -40,12 +40,15 @@ steps:
       - '--zone=${_ZONE}'
       - '--master-machine-type=n1-standard-1'
       - '--worker-machine-type=n1-standard-1'
-      - '--num-workers=1'
+      - '--num-workers=2'
       - '--master-boot-disk-size=15'
       - '--worker-boot-disk-size=15'
 #      - '--autoscaling-policy=gs://${_BUILD_BUCKET}/temp/autoscaling/autoscaling-policy.yaml'
       - '--initialization-actions=gs://${_BUILD_BUCKET}/temp/init-actoins/add_hive_jars.sh'
       - '--metadata=hive-aux-libs=gs://${_BUILD_BUCKET}/hive-aux-libs/'
+    volumes:
+      - path: '/dataproc-samples'
+        name: 'repository'
 
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
@@ -54,7 +57,10 @@ steps:
       - 'import'
       - '--region=${_REGION}'
       - 'general-policy'
-      - '--source=gs://${_BUILD_BUCKET}/temp/autoscaling/autoscaling-policy.yaml'
+      - '--source=dataproc-samples/autoscaling/autoscaling-policy.yaml'
+    volumes:
+      - path: '/dataproc-samples'
+        name: 'repository'
 
   ## Run teragen test
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -68,7 +74,7 @@ steps:
       - '--class=org.apache.hadoop.examples.terasort.TeraGen'
       - '--jars=file:///usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples.jar'
       - '--'
-      - '100'
+      - '1000000'
       - 'gs://${_BUILD_BUCKET}/test/output/teragen_output'
 
 
