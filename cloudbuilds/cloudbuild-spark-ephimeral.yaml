@@ -14,20 +14,11 @@ steps:
   # Update manifest file and upload artifacts
   #
 
-  - name: gcr.io/infra-core-us-central/manifest-util
-    args: ['--git_sha', '$COMMIT_SHA',
+  - name: gcr.io/$PROJECT_ID/manifest-util
+    args: ['--git_sha',    '$COMMIT_SHA',
            '--git_brunch', '$BRANCH_NAME',
-           '--built_at', '12-12-12',
-           '--upload',
-           '--mf_file', './.mf.json'
+           '--build_id', '$BUILD_ID',
+           '--upload'
            ]
     id: 'set-manifest'
     dir: 'spark/'
-    waitFor: ['build_spark_jar']
-
-
-
-images: [
-  'mozilla/sbt:8u212_1.2.8',
-  'gcr.io/infra-core-us-central/manifest-util'
-]
