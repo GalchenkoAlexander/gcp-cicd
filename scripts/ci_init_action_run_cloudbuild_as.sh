@@ -8,4 +8,7 @@ gcloud builds submit \
 _CLUSTER_NAME=gcp-cicd-dataproc-cluster,\
 _REGION=us-central1,\
 _ZONE=us-central1-b,\
-_BUILD_BUCKET=${ROOT_BUILD_PATH}
+_BUCKET_NAME=${BUCKET_NAME}
+_REPO_NAME=${REPO_NAME}
+_BRANCH_NAME=${BRANCH_NAME}
+_SHORT_SHA=${SHORT_SHA}

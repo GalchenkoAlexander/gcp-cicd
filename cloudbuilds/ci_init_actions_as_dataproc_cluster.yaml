@@ -1,3 +1,6 @@
+substitutions:
+  _BUILD_BUCKET: ${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}
+
 steps:
 
   # get init_actions itself
@@ -13,18 +16,20 @@ steps:
       - 'cp'
       - '-r'
       - './dataproc-samples/init-actions/*.sh'
-      - 'gs://${_BUILD_BUCKET}/temp/init-actoins/'
+      - 'gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/temp/init-actoins/'
     volumes:
       - path: '/dataproc-samples'
         name: 'repository'
 
-  # copy autoscaling-policy
-  - name: 'gcr.io/cloud-builders/gsutil'
+  # import autoscaling-policy
+  - name: 'gcr.io/cloud-builders/gcloud'
     args:
-      - 'cp'
-      - '-r'
-      - './dataproc-samples/autoscaling/autoscaling-policy.yaml'
-      - 'gs://${_BUILD_BUCKET}/temp/autoscaling/'
+      - 'dataproc'
+      - 'autoscaling-policies'
+      - 'import'
+      - '--region=${_REGION}'
+      - 'general-policy-${_REGION}-${_SHORT_SHA}'
+      - '--source=dataproc-samples/autoscaling/autoscaling-policy.yaml'
     volumes:
       - path: '/dataproc-samples'
         name: 'repository'
@@ -43,21 +48,9 @@ steps:
       - '--num-workers=2'
       - '--master-boot-disk-size=15'
       - '--worker-boot-disk-size=15'
-#      - '--autoscaling-policy=gs://${_BUILD_BUCKET}/temp/autoscaling/autoscaling-policy.yaml'
-      - '--initialization-actions=gs://${_BUILD_BUCKET}/temp/init-actoins/add_hive_jars.sh'
-      - '--metadata=hive-aux-libs=gs://${_BUILD_BUCKET}/hive-aux-libs/'
-    volumes:
-      - path: '/dataproc-samples'
-        name: 'repository'
-
-  - name: 'gcr.io/cloud-builders/gcloud'
-    args:
-      - 'dataproc'
-      - 'autoscaling-policies'
-      - 'import'
-      - '--region=${_REGION}'
-      - 'general-policy'
-      - '--source=dataproc-samples/autoscaling/autoscaling-policy.yaml'
+      - '--autoscaling-policy=general-policy-${_REGION}-${_SHORT_SHA}'
+      - '--initialization-actions=gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/temp/init-actoins/add_hive_jars.sh'
+      - '--metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/hive-aux-libs/'
     volumes:
       - path: '/dataproc-samples'
         name: 'repository'
@@ -75,7 +68,7 @@ steps:
       - '--jars=file:///usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples.jar'
       - '--'
       - '1000000'
-      - 'gs://${_BUILD_BUCKET}/test/output/teragen_output'
+      - 'gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/temp/test/output/teragen_output'
 
 
   ## Run pi-spark test
@@ -101,17 +94,27 @@ steps:
       - '${_CLUSTER_NAME}'
       - '--region=${_REGION}'
 
+  ## delete policy
+  - name: 'gcr.io/cloud-builders/gcloud'
+    args:
+      - 'gcloud'
+      - 'dataproc'
+      - 'autoscaling-policies'
+      - 'delete'
+      - '--region=${_REGION}'
+      - "general-policy-${_REGION}-${_SHORT_SHA}"
+
   # copy to work dir
   - name: 'gcr.io/cloud-builders/gsutil'
     args:
       - 'cp'
       - '-r'
-      - 'gs://${_BUILD_BUCKET}/temp/init-actoins'
-      - 'gs://${_BUILD_BUCKET}/init-actoins'
+      - 'gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/temp/init-actoins'
+      - 'gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/init-actoins'
 
-  # remove resources
+  # remove temp resources
   - name: 'gcr.io/cloud-builders/gsutil'
     args:
       - 'rm'
       - '-r'
-      - 'gs://${_BUILD_BUCKET}/temp/init-actoins'
+      - 'gs://${_BUCKET_NAME}/${_REPO_NAME}/${_BRANCH_NAME}/${_SHORT_SHA}/temp'
