@@ -1,44 +1,33 @@
 steps:
 
+
     #
     # Assembly spark artifact, run unit tests
     #
-    # TODO: use '-Dsbt.global.base=/cache/.sbt-home', '-Dsbt.ivy.home=/cache/.ivy2'
+    # TODO: add '-Dsbt.ivy.home=/cache/.ivy2'
   - name: 'mozilla/sbt:8u212_1.2.8'
-    args: ['sbt',  'assembly']
+    args: ['sbt', '-Dsbt.global.base=/cache/.sbt-home', 'assembly']
     id: 'build_spark_jar'
     dir: 'spark/'
-    waitFor: ['-']
 
-    #
-    # Upload Spark artifacts to GS
-    #
-  - name: 'gcr.io/cloud-builders/gsutil'
-    id: 'publish_spark_artifact'
-    args: [
-      'cp',
-      'target/scala-2.11/*assembly*.jar',
-      'gs://$_BUILD_BUCKET/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/spark/app.jar'
-    ]
+  #
+  # Update manifest file and upload artifacts
+  #
+
+  - name: gcr.io/infra-core-us-central/manifest-util
+    args: ['--git_sha', '$COMMIT_SHA',
+           '--git_brunch', '$BRANCH_NAME',
+           '--built_at', '12-12-12',
+           '--upload',
+           '--mf_file', './.mf.json'
+           ]
+    id: 'set-manifest'
     dir: 'spark/'
+    waitFor: ['build_spark_jar']
 
 
-
-
-  #
-  # Read update and write manifest file after build finishs
-  #
-
-  # - name: python:3.7
-  #   args: ['']
-  #   id: 'set-build-ref'
-  #   waitFor: ['publish_spark_artifact']
-
-
-
-substitutions:
-  _BUILD_BUCKET: cicd
 
 images: [
-  'mozilla/sbt:8u212_1.2.8'
+  'mozilla/sbt:8u212_1.2.8',
+  'gcr.io/infra-core-us-central/manifest-util'
 ]

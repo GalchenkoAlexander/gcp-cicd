@@ -11,7 +11,7 @@ Run build with this command:
 ```
 gcloud builds submit \
 --substitutions=_BUILD_BUCKET=builds-2,REPO_NAME=gcp-cicd,BRANCH_NAME=master,SHORT_SHA=$(date | md5)  \
---config cloudbuilds/cloudbuild-spark-persistent.yaml .
+--config cloudbuilds/cloudbuild-spark-ephimeral.yaml .
 ```
 
 ### Composer
