@@ -1,0 +1,22 @@
+{
+  "bucket": "gcp-cicd-artifacts",
+  "repository": "gcp-cicd",
+  "components": {
+    "dataproc-init-actions": {
+      "type": "init-actions",
+      "assets": [
+        {
+          "glob": "./init-actions/*.sh"
+        }
+      ]
+    },
+    "dataproc-custom-image": {
+      "type": "custom-image",
+      "assets": [
+        {
+          "glob": "./custom-image/*.sh"
+        }
+      ]
+    }
+  }
+}
