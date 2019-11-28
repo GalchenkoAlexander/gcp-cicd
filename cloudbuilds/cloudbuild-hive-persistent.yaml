@@ -1,10 +1,5 @@
 steps:
 
-# github clone
-#- name: 'gcr.io/cloud-builders/git'
-#  args: ['clone', 'https://github.com/GalchenkoAlexander/ch17-hive.git']
-
-
 # Exec maven package
 - name: 'gcr.io/cloud-builders/mvn'
   args: ['package']

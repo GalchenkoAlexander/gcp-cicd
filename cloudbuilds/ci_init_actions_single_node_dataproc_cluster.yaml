@@ -1,22 +1,13 @@
 steps:
 
-  # get init_actions itself
-  - name: 'gcr.io/cloud-builders/git'
-    args: ['clone', 'https://github.com/elisska/gcp-cicd.git', 'dataproc-samples']
-    volumes:
-      - path: '/dataproc-samples'
-        name: 'repository'
-
   # copy init actions to GCS
   - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'copy_resources'
     args:
       - 'cp'
       - '-r'
-      - './dataproc-samples/init-actions/*.sh'
-      - 'gs://${_BUILD_BUCKET}/temp/init-actoins/'
-    volumes:
-      - path: '/dataproc-samples'
-        name: 'repository'
+      - 'dataproc/init-actions/*.sh'
+      - 'gs://${_BUCKET_NAME}/$REPO_NAME/$BRANCH_NAME/$SHORT_SHA/temp/dataproc/init-actoins/'
 
   ## create single node dataproc cluster
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -28,8 +19,8 @@ steps:
       - '--single-node'
       - '--region=${_REGION}'
       - '--zone=${_ZONE}'
-      - '--initialization-actions=gs://${_BUILD_BUCKET}/temp/init-actoins/add_hive_jars.sh'
-      - '--metadata=hive-aux-libs=gs://${_BUILD_BUCKET}/hive-aux-libs/'
+      - '--initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/dataproc/init-actoins/add_hive_jars.sh'
+      - '--metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive-aux-libs/'
 
   ## Run teragen test
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -44,7 +35,7 @@ steps:
       - '--jars=file:///usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples.jar'
       - '--'
       - '100'
-      - 'gs://${_BUILD_BUCKET}/test/output/teragen_output'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/test/output/teragen_output'
 
 
   ## Run pi-spark test
@@ -71,16 +62,18 @@ steps:
       - '--region=${_REGION}'
 
   # copy to work dir
-  - name: 'gcr.io/cloud-builders/gsutil'
-    args:
-      - 'cp'
-      - '-r'
-      - 'gs://${_BUILD_BUCKET}/temp/init-actoins'
-      - 'gs://${_BUILD_BUCKET}/init-actoins'
+  - name: gcr.io/$PROJECT_ID/manifest-util
+    args: ['--git_sha', '$COMMIT_SHA',
+           '--git_brunch', '$BRANCH_NAME',
+           '--build_id', '$BUILD_ID',
+           '--upload' ]
+    id: 'set-manifest'
+    dir: 'dataproc/'
 
-  # remove resources
+  # remove temp resources
   - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'remove_temp_resources'
     args:
       - 'rm'
       - '-r'
-      - 'gs://${_BUILD_BUCKET}/temp/init-actoins'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp'

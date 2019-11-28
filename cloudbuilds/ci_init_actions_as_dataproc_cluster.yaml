@@ -1,24 +1,13 @@
 steps:
-
-  # get init_actions itself
-  - name: 'gcr.io/cloud-builders/git'
-    id: 'clone_repo'
-    args: ['clone', 'https://github.com/elisska/gcp-cicd.git', 'dataproc-samples']
-    volumes:
-      - path: '/dataproc-samples'
-        name: 'repository'
-
   # copy init actions to GCS
   - name: 'gcr.io/cloud-builders/gsutil'
     id: 'copy_resources'
+    dir: 'dataproc/'
     args:
       - 'cp'
       - '-r'
-      - './dataproc-samples/init-actions/*.sh'
-      - 'gs://${_BUCKET_NAME}/$REPO_NAME/$BRANCH_NAME/$SHORT_SHA/temp/init-actoins/'
-    volumes:
-      - path: '/dataproc-samples'
-        name: 'repository'
+      - 'init-actions/*.sh'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/dataproc/init-actoins/'
 
   # import autoscaling-policy
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -29,10 +18,7 @@ steps:
       - 'import'
       - '--region=${_REGION}'
       - 'general-policy-${_REGION}-${SHORT_SHA}'
-      - '--source=dataproc-samples/autoscaling/autoscaling-policy.yaml'
-    volumes:
-      - path: '/dataproc-samples'
-        name: 'repository'
+      - '--source=dataproc/autoscaling/autoscaling-policy.yaml'
 
   ## create autoscaling dataproc cluster
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -50,11 +36,8 @@ steps:
       - '--master-boot-disk-size=15'
       - '--worker-boot-disk-size=15'
       - '--autoscaling-policy=general-policy-${_REGION}-${SHORT_SHA}'
-      - '--initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/init-actoins/add_hive_jars.sh'
+      - '--initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/dataproc/init-actoins/add_hive_jars.sh'
       - '--metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive-aux-libs/'
-    volumes:
-      - path: '/dataproc-samples'
-        name: 'repository'
 
   ## Run teragen test
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -98,6 +81,15 @@ steps:
       - '${_CLUSTER_NAME}'
       - '--region=${_REGION}'
 
+  # copy to work dir
+  - name: gcr.io/$PROJECT_ID/manifest-util
+    args: ['--git_sha', '$COMMIT_SHA',
+           '--git_brunch', '$BRANCH_NAME',
+           '--build_id', '$BUILD_ID',
+           '--upload' ]
+    id: 'set-manifest'
+    dir: 'dataproc/'
+
   ## delete policy
   - name: 'gcr.io/cloud-builders/gcloud'
     id: 'delete_auto_scaling_policy'
@@ -107,15 +99,6 @@ steps:
       - 'delete'
       - '--region=${_REGION}'
       - "general-policy-${_REGION}-${SHORT_SHA}"
-
-  # copy to work dir
-  - name: 'gcr.io/cloud-builders/gsutil'
-    id: 'copy_to_work_dir'
-    args:
-      - 'cp'
-      - '-r'
-      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/init-actoins'
-      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/init-actoins'
 
   # remove temp resources
   - name: 'gcr.io/cloud-builders/gsutil'
