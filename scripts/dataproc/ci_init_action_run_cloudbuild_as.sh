@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-source ./env.sh
-
+source ../env.sh
+cd ../..
 gcloud builds submit \
---config=../cloudbuilds/ci_init_actions_as_dataproc_cluster.yaml \
+--config=./cloudbuilds/ci_init_actions_as_dataproc_cluster.yaml \
 --substitutions=\
 _CLUSTER_NAME=gcp-cicd-dataproc-cluster,\
 _REGION=us-central1,\

@@ -8,5 +8,5 @@ export REPO_NAME='gcp-cicd'
 export BRANCH_NAME='master'
 export SHORT_SHA=$(date | md5)
 
-touch ./env-persional.sh
-. ./env-persional.sh
+touch $(pwd)/env-persional.sh
+source $(pwd)/env-persional.sh
