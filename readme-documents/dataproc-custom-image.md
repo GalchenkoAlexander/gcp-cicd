@@ -32,3 +32,8 @@ _IMAGE_NAME=dataproc-custom-image-$(date +%s)
 
 It will create a custom image with name `dataproc-custom-image-1575030392` with Dataproc version `1.4.16-debian9`.
 
+### Cloud build steps
+- clone repo from `https://github.com/GoogleCloudPlatform/dataproc-custom-images`. It is used to generate image
+- run `generate_custom_image.py` to generate image
+- create `latest_image_uri.txt` file with image path
+- copy resources to GCS and update manifest
