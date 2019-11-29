@@ -11,7 +11,7 @@ steps:
     entrypoint: 'python'
     dir: 'dataproc-custom-images'
     args: ['generate_custom_image.py',
-      '--image-name', '_IMAGE_NAME',
+      '--image-name', '${_IMAGE_NAME}',
       '--dataproc-version', '1.4.16-debian9',
       '--customization-script', '../dataproc/custom-image/init_actions.sh',
       '--zone', '${_ZONE}',
