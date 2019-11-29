@@ -4,17 +4,32 @@ from pathlib import Path
 from typing import Tuple, Optional, Dict
 
 import google
+import datetime
 import requests
 import requests.auth
 from google.cloud import storage
 
-from mf.config import LocalConfFile, BuildInfo
+from mf.config import Project, BuildInfo
+from mf.assets import AssetBase
 from mf.log import LOGGER
 
 MANIFEST_NAME = 'manifest.json'
 
 
-class _Storage:
+class StorageBase:
+
+    def fetch_manifest(self) -> Tuple[str, int, dict]:
+        raise NotImplemented('fetch_manifest')
+
+    def cas_blob(self, data: bytes, generation: int, bucket_name: str, blob_name: str) -> Tuple[
+        bool, Optional[requests.Response]]:
+        raise NotImplemented('cas_blob')
+
+    def upload(self, bucket, key, file):
+        raise NotImplemented('upload')
+
+
+class StorageGCS(StorageBase):
 
     def __init__(self, bucket, semantic_name):
         credentials, _ = google.auth.default()
@@ -23,24 +38,35 @@ class _Storage:
         self._semantic_name = semantic_name
         self._gs_bucket = self._storage_client.lookup_bucket(bucket)
 
-    def fetch_manifest(self) -> Tuple[storage.bucket.Blob, dict]:
+    def fetch_manifest(self) -> Tuple[str, str, dict]:
         """
         Fetch manifest from GS bucket. Remember blob's generation for concurrency control.
         :return:
         """
 
         bucket = self._gs_bucket
-        key_ = f'{self._semantic_name}/{MANIFEST_NAME}'
-        manifest_blob: storage.bucket.Blob = bucket.get_blob(key_)
+        key = f'{self._semantic_name}/{MANIFEST_NAME}'
+        manifest_blob: storage.bucket.Blob = bucket.get_blob(key)
 
         if not manifest_blob:
-            raise Exception(f'{MANIFEST_NAME} not exists by key {key_} in {bucket.name}')
+            LOGGER.warning(f'{MANIFEST_NAME} not exists by  gs://{bucket.name}/{key}, create empty')
+            empty_manifest: str = json.dumps({"@spec": 1, "@ns": {}})
+
+            ok, err = self.cas_blob(empty_manifest.encode('utf-8'),
+                                    generation=0, bucket_name=bucket.name, blob_name=key)
+
+            if ok or err is None:
+                # manifest has just created
+                manifest_blob = bucket.get_blob(key)
+            else:
+                LOGGER.error("Could not create manifest %s", err.content)
+                raise Exception("creating %s failed" % key)
 
         str_ = manifest_blob.download_as_string()
         json_ = json.loads(str_)
 
         LOGGER.info('Fetching manifest gcs blob %s', manifest_blob)
-        return manifest_blob, json_
+        return manifest_blob.name, manifest_blob.generation, json_
 
     def cas_blob(self, data: bytes, generation: int, bucket_name: str, blob_name: str) -> Tuple[
         bool, Optional[requests.Response]]:
@@ -93,52 +119,54 @@ class _Storage:
         :return:
         """
         blob: storage.client.Blob = self._storage_client.bucket(bucket).blob(key)
-        blob.upload_from_file(file)
+        blob.upload_from_filename(file)
 
 
 class Manifest(object):
 
-    def __init__(self, bucket, repo_name):
+    def __init__(self, bucket, repo_name, **kwargs):
 
         self._bucket = bucket
         self._repo_name = repo_name
 
-        self._storage = _Storage(bucket, repo_name)
+        if 'storage' in kwargs:
+            self._storage: StorageBase = kwargs['storage']
+        else:
+            self._storage: StorageBase = StorageGCS(bucket, repo_name)
+
         self.__fetch_manifest()
 
     def __fetch_manifest(self):
-        blob, content = self._storage.fetch_manifest()
+        blob_name, version, content = self._storage.fetch_manifest()
 
         self._original_content = content
-        self._version = blob.generation
-        self._blob_key = blob.name
+        self._version = version
+        self._blob_key = blob_name
 
-    def update(self, build: BuildInfo, m_file: LocalConfFile, upload: bool = True):
+    def update(self, build: BuildInfo, project_obj: Project, upload: bool = True):
         """
         Compare and update blob by generation.
         Trying until success.
 
+        :param build: build info
         :param upload: to do uploading of a content, (for debug)
-        :param m_file:
-        :param branch_name: name of a current brunch
-        :param generated_manifest: new part of a manifest
-
+        :param project_obj:
         """
 
         refs_upload_done = False
 
         while True:
-            current_manifest, assets = merge_new_manifest(self._original_content, build, m_file)
+            current_manifest, assets = _merge_new_manifest(self._original_content, build, project_obj)
 
             if not upload:
                 return current_manifest
 
-            #
             # Upload assets first and update manifest only after it.
-            #
             if not refs_upload_done:
                 refs_upload_done = True
-                assets.save(self._storage)
+                for key, file in assets.items():
+                    LOGGER.info("Uploading %s [%s]", file, key)
+                    self._storage.upload(project_obj.bucket, key, file)
 
             ok, err_resp = self._storage.cas_blob(data=json.dumps(current_manifest).encode('utf-8'),
                                                   generation=self._version,
@@ -155,32 +183,8 @@ class Manifest(object):
                 raise Exception('GoogleStorage update failed')
 
 
-class Assets:
-
-    def __init__(self, bucket, **kwargs):
-        super().__init__(**kwargs)
-        self.bucket = bucket
-        self._refs: Dict[str, Tuple[Path, str]] = dict()
-
-    def ref(self, key, file: Path) -> str:
-        url = f'gs://{self.bucket}/{key}'
-
-        if key not in self._refs:
-            self._refs[key] = (file.absolute(), url)
-
-        return url
-
-    def save(self, _storage: _Storage):
-
-        for key, (file, url) in self._refs.items():
-            LOGGER.info("Uploading %s [%s]", file, url)
-
-            # noinspection PyTypeChecker
-            with open(file, 'rb') as f:
-                _storage.upload(self.bucket, key, f)
-
-
-def merge_new_manifest(original_manifest: dict, build: BuildInfo, mf_file: LocalConfFile) -> Tuple[dict, Assets]:
+def _merge_new_manifest(original_manifest: dict, build: BuildInfo, mf_file: Project) \
+        -> Tuple[dict, Dict[str, Path]]:
     """
     Merge generated manifest about branch into fetched from remote.
 
@@ -190,27 +194,35 @@ def merge_new_manifest(original_manifest: dict, build: BuildInfo, mf_file: Local
     :return: resulting whole manifest and assets
     """
 
-    import datetime, time
-
     current_manifest = copy.deepcopy(original_manifest)
     ns_key = '@ns'
-    ns = current_manifest.get(ns_key, {})
 
-    # save to the same bucket where is the manifest
-    assets = Assets(bucket=mf_file.bucket)
+    if ns_key not in current_manifest:
+        current_manifest[ns_key] = {}
 
-    def mk_ref_key(component_name, file):
-        LOGGER.info("[%s] discovering asset %s", component_name, file)
-        return f'{mf_file.repository}/{build.git_branch}/{build.git_sha}/{component_name}/{file.name}'
+    ns = current_manifest[ns_key]
+
+    assets: Dict[str, Path] = dict()
+
+    def ref(component_name, asset: AssetBase):
+        key = f'{mf_file.repository}/{build.git_branch}/{build.git_sha}/{component_name}/{asset.filename}'
+        url = f'gs://{mf_file.bucket}/{key}'
+        path = asset.path
+
+        LOGGER.info("[%s] discovering asset %s", component_name, path)
+        if key not in assets:
+            assets[key] = asset.path
+
+        return url
 
     component_dict = dict(
         [(component.name, {
             "@type": component.type,
             "@metadata": {},
             "@binaries": [{
-                "@md5": md5,
-                "@ref": assets.ref(key=mk_ref_key(component.name, file), file=file)
-            } for file, md5 in component.assets]
+                "@md5": asset.md5,
+                "@ref": ref(component.name, asset)
+            } for asset in component.assets]
         }) for component in mf_file.components]
     )
 
@@ -222,8 +234,5 @@ def merge_new_manifest(original_manifest: dict, build: BuildInfo, mf_file: Local
             "@include": component_dict
         }
     }
-
-    if ns_key not in current_manifest:
-        current_manifest[ns_key] = ns
 
     return current_manifest, assets
