@@ -14,7 +14,15 @@
       "type": "custom-image",
       "assets": [
         {
-          "glob": "./custom-image/*.sh"
+          "glob": "./custom-image/*"
+        }
+      ]
+    },
+    "dataproc-auto-scaling": {
+      "type": "auto-scaling",
+      "assets": [
+        {
+          "glob": "./auto-scaling/*.yaml"
         }
       ]
     }

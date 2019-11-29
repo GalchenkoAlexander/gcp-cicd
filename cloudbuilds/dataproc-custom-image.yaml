@@ -1,0 +1,45 @@
+steps:
+  - name: 'gcr.io/cloud-builders/git'
+    id: 'clone_gcp_dataproc_custom_images_prj'
+    args: ['clone', 'https://github.com/GoogleCloudPlatform/dataproc-custom-images.git', 'dataproc-custom-images']
+    volumes:
+      - path: '/dataproc-custom-images'
+        name: 'repository'
+
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'generate_image'
+    entrypoint: 'python'
+    dir: 'dataproc-custom-images'
+    args: ['generate_custom_image.py',
+      '--image-name', '_IMAGE_NAME',
+      '--dataproc-version', '1.4.16-debian9',
+      '--customization-script', '../dataproc/custom-image/init_actions.sh',
+      '--zone', '${_ZONE}',
+      '--no-smoke-test',
+      '--gcs-bucket', 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/dataproc/logs' ]
+    volumes:
+      - path: '/dataproc-custom-images'
+        name: 'repository'
+    env:
+      - 'PYTHONPATH=dataproc-custom-images/custom_image_utils/'
+
+  # create latest image URI file
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'generate_image_output'
+    dir: 'dataproc/custom-image/'
+    entrypoint: 'bash'
+    args: ['-c', 'echo https://www.googleapis.com/compute/beta/projects/${PROJECT_ID}/global/images/${_IMAGE_NAME} > latest_image_uri.txt']
+
+  # copy to GCS
+  - name: gcr.io/$PROJECT_ID/manifest-util
+    args: ['--git_sha', '$COMMIT_SHA',
+           '--git_brunch', '$BRANCH_NAME',
+           '--build_id', '$BUILD_ID',
+           '--upload' ]
+    id: 'set-manifest'
+    dir: 'dataproc/'
+
+tags:
+  - 'dataproc-custom-image'
+
+timeout: 1800s

@@ -1,5 +1,19 @@
 # Cloud builds
 
+Dataproc Custom Image builder `dataproc-custom-image.yaml`
+
+```
+gcloud builds submit \
+--config=./cloudbuilders/dataproc-custom-image.yaml.yaml \
+--substitutions=\
+_BUCKET_NAME=<BUCKET_NAME>,\
+REPO_NAME=<REPO_NAME>,\
+BRANCH_NAME=<BRANCH_NAME>,\
+SHORT_SHA=<SHORT_SHA>,\
+_ZONE=<ZONE>,\
+_PROJECT_ID=<PROJECT_ID>,\
+_IMAGE_NAME=<IMAGE_NAME>
+```
 
 
 ## CI process for init actions scripts.
