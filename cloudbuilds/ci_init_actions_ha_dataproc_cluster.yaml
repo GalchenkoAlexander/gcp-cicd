@@ -66,6 +66,14 @@ steps:
       - '${_CLUSTER_NAME}'
       - '--region=${_REGION}'
 
+  # remove temp resources
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'remove_temp_resources'
+    args:
+      - 'rm'
+      - '-r'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp'
+
   # copy to work dir
   - name: gcr.io/$PROJECT_ID/manifest-util
     args: ['--git_sha', '$COMMIT_SHA',
@@ -74,11 +82,3 @@ steps:
            '--upload' ]
     id: 'set-manifest'
     dir: 'dataproc/'
-
-  # remove temp resources
-  - name: 'gcr.io/cloud-builders/gsutil'
-    id: 'remove_temp_resources'
-    args:
-      - 'rm'
-      - '-r'
-      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp'

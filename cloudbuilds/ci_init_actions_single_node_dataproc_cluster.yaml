@@ -11,6 +11,7 @@ steps:
 
   ## create single node dataproc cluster
   - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'create_autoscaling_dataproc_cluster'
     args:
       - 'dataproc'
       - 'clusters'
@@ -24,6 +25,7 @@ steps:
 
   ## Run teragen test
   - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'run_teragen_test'
     args:
       - 'dataproc'
       - 'jobs'
@@ -40,6 +42,7 @@ steps:
 
   ## Run pi-spark test
   - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'run_pi_spark_test'
     args:
       - 'dataproc'
       - 'jobs'
@@ -54,12 +57,21 @@ steps:
 
   ## delete single node dataproc cluster
   - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'delete_dataproc_cluster'
     args:
       - 'dataproc'
       - 'clusters'
       - 'delete'
       - '${_CLUSTER_NAME}'
       - '--region=${_REGION}'
+
+  # remove temp resources
+  - name: 'gcr.io/cloud-builders/gsutil'
+    id: 'remove_temp_resources'
+    args:
+      - 'rm'
+      - '-r'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp'
 
   # copy to work dir
   - name: gcr.io/$PROJECT_ID/manifest-util
@@ -69,11 +81,3 @@ steps:
            '--upload' ]
     id: 'set-manifest'
     dir: 'dataproc/'
-
-  # remove temp resources
-  - name: 'gcr.io/cloud-builders/gsutil'
-    id: 'remove_temp_resources'
-    args:
-      - 'rm'
-      - '-r'
-      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp'

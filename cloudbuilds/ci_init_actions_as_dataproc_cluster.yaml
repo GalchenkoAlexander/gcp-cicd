@@ -73,22 +73,13 @@ steps:
 
   ## delete dataproc cluster
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'delete_autoscaling_dataproc_cluster'
+    id: 'delete_dataproc_cluster'
     args:
       - 'dataproc'
       - 'clusters'
       - 'delete'
       - '${_CLUSTER_NAME}'
       - '--region=${_REGION}'
-
-  # copy to work dir
-  - name: gcr.io/$PROJECT_ID/manifest-util
-    args: ['--git_sha', '$COMMIT_SHA',
-           '--git_brunch', '$BRANCH_NAME',
-           '--build_id', '$BUILD_ID',
-           '--upload' ]
-    id: 'set-manifest'
-    dir: 'dataproc/'
 
   ## delete policy
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -107,3 +98,12 @@ steps:
       - 'rm'
       - '-r'
       - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp'
+
+  # copy to work dir
+  - name: gcr.io/$PROJECT_ID/manifest-util
+    args: ['--git_sha', '$COMMIT_SHA',
+           '--git_brunch', '$BRANCH_NAME',
+           '--build_id', '$BUILD_ID',
+           '--upload' ]
+    id: 'set-manifest'
+    dir: 'dataproc/'
