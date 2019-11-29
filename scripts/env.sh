@@ -9,4 +9,4 @@ export BRANCH_NAME='master'
 export SHORT_SHA=$(date | md5)
 
 touch $(pwd)/env-persional.sh
-source $(pwd)/env-persional.sh
+source ./env-persional.sh
