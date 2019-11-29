@@ -16,7 +16,7 @@ steps:
       '--customization-script', '../dataproc/custom-image/init_actions.sh',
       '--zone', '${_ZONE}',
       '--no-smoke-test',
-      '--gcs-bucket', 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/dataproc/logs' ]
+      '--gcs-bucket', 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/dataproc/logs' ]
     volumes:
       - path: '/dataproc-custom-images'
         name: 'repository'
