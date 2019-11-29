@@ -7,7 +7,7 @@ steps:
       - 'cp'
       - '-r'
       - 'dataproc/init-actions/*.sh'
-      - 'gs://${_BUCKET_NAME}/$REPO_NAME/$BRANCH_NAME/$SHORT_SHA/temp/dataproc/init-actoins/'
+      - 'gs://${_BUCKET_NAME}/$REPO_NAME/$BRANCH_NAME/$COMMIT_SHA/temp/dataproc/init-actoins/'
 
   ## create single node dataproc cluster
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -21,8 +21,8 @@ steps:
       - '--master-machine-type=n1-standard-1'
       - '--num-workers=2'
       - '--worker-machine-type=n1-standard-1'
-      - '--initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/dataproc/init-actoins/add_hive_jars.sh'
-      - '--metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive-aux-libs/'
+      - '--initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/dataproc/init-actoins/add_hive_jars.sh'
+      - '--metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/hive-aux-libs/'
 
   ## Run teragen test
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -37,7 +37,7 @@ steps:
       - '--jars=file:///usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples.jar'
       - '--'
       - '100'
-      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/test/output/teragen_output'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/test/output/teragen_output'
 
   ## Run pi-spark test
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -68,7 +68,7 @@ steps:
     args:
       - 'rm'
       - '-r'
-      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp'
 
   # copy to work dir
   - name: gcr.io/$PROJECT_ID/manifest-util

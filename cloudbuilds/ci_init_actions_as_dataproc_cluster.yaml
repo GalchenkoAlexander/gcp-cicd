@@ -7,7 +7,7 @@ steps:
       - 'cp'
       - '-r'
       - 'init-actions/*.sh'
-      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/dataproc/init-actoins/'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/dataproc/init-actoins/'
 
   # import autoscaling-policy
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -17,7 +17,7 @@ steps:
       - 'autoscaling-policies'
       - 'import'
       - '--region=${_REGION}'
-      - 'general-policy-${_REGION}-${SHORT_SHA}'
+      - 'general-policy-${_REGION}-${COMMIT_SHA}'
       - '--source=dataproc/autoscaling/autoscaling-policy.yaml'
 
   ## create autoscaling dataproc cluster
@@ -35,9 +35,9 @@ steps:
       - '--num-workers=2'
       - '--master-boot-disk-size=15'
       - '--worker-boot-disk-size=15'
-      - '--autoscaling-policy=general-policy-${_REGION}-${SHORT_SHA}'
-      - '--initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/dataproc/init-actoins/add_hive_jars.sh'
-      - '--metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/hive-aux-libs/'
+      - '--autoscaling-policy=general-policy-${_REGION}-${COMMIT_SHA}'
+      - '--initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/dataproc/init-actoins/add_hive_jars.sh'
+      - '--metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/hive-aux-libs/'
 
   ## Run teragen test
   - name: 'gcr.io/cloud-builders/gcloud'
@@ -53,7 +53,7 @@ steps:
       - '--jars=file:///usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples.jar'
       - '--'
       - '100000000'
-      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp/test/output/teragen_output'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/test/output/teragen_output'
 
 
   ## Run pi-spark test
@@ -89,7 +89,7 @@ steps:
       - 'autoscaling-policies'
       - 'delete'
       - '--region=${_REGION}'
-      - "general-policy-${_REGION}-${SHORT_SHA}"
+      - "general-policy-${_REGION}-${COMMIT_SHA}"
 
   # remove temp resources
   - name: 'gcr.io/cloud-builders/gsutil'
@@ -97,7 +97,7 @@ steps:
     args:
       - 'rm'
       - '-r'
-      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${SHORT_SHA}/temp'
+      - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp'
 
   # copy to work dir
   - name: gcr.io/$PROJECT_ID/manifest-util
