@@ -76,7 +76,7 @@ steps:
   # copy to work dir
   - name: gcr.io/$PROJECT_ID/manifest-util
     args: ['--git_sha', '$COMMIT_SHA',
-           '--git_brunch', '$BRANCH_NAME',
+           '--git_branch', '$BRANCH_NAME',
            '--build_id', '$BUILD_ID',
            '--upload' ]
     id: 'set-manifest'
