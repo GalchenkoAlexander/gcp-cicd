@@ -11,7 +11,7 @@ To generate dataproc custom image is using `./cloudbuilds/dataproc-custom-image.
 Run this build:
 ```
 gcloud builds submit \
---config=./cloudbuilders/dataproc-custom-image.yaml.yaml \
+--config=./cloudbuilds/dataproc-custom-image.yaml \
 --substitutions=\
 _BUCKET_NAME=<BUCKET_NAME>,\
 REPO_NAME=<REPO_NAME>,\
