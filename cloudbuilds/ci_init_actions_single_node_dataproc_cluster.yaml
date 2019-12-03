@@ -11,7 +11,7 @@ steps:
 
   ## create single node dataproc cluster
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'create_autoscaling_dataproc_cluster'
+    id: 'create_single_node_dataproc_cluster'
     args:
       - 'dataproc'
       - 'clusters'
