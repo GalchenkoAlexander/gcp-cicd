@@ -9,9 +9,9 @@ steps:
       - 'dataproc/init-actions/*.sh'
       - 'gs://${_BUCKET_NAME}/$REPO_NAME/$BRANCH_NAME/$COMMIT_SHA/temp/dataproc/init-actoins/'
 
-  ## create single node dataproc cluster
+  ## create dataproc cluster
   - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'create single node dataproc cluster'
+    id: 'create dataproc cluster'
     entrypoint: 'bash'
     args:
       - '-c'
@@ -24,18 +24,7 @@ steps:
             --zone=${_ZONE} \
             --initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/dataproc/init-actoins/add_hive_jars.sh \
             --metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/hive-aux-libs ;
-        else
-          echo "skipped because requested ${_CLUSTER_TYPE} cluster type";
-        fi
-
-  ## create multi node dataproc cluster
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'create multi node dataproc cluster'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        if [ ${_CLUSTER_TYPE} == 'multi-node' ]; then
+        elif [ ${_CLUSTER_TYPE} == 'multi-node' ]; then
           echo "create multi node dataproc cluster";
           gcloud dataproc clusters create ${_CLUSTER_NAME}-${_CLUSTER_TYPE} \
             --region=${_REGION} \
@@ -45,18 +34,7 @@ steps:
             --worker-machine-type=n1-standard-1 \
             --initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/dataproc/init-actoins/add_hive_jars.sh \
             --metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/hive-aux-libs ;
-        else
-          echo "skipped because requested ${_CLUSTER_TYPE} cluster type";
-        fi
-
-  ## create high availability dataproc cluster
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'create high availability dataproc cluster'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        if [ ${_CLUSTER_TYPE} == 'high-availability' ]; then
+        elif [ ${_CLUSTER_TYPE} == 'high-availability' ]; then
           echo "create high availability dataproc cluster";
           gcloud dataproc clusters create ${_CLUSTER_NAME}-${_CLUSTER_TYPE} \
             --region=${_REGION} \
@@ -69,18 +47,7 @@ steps:
             --worker-boot-disk-size=15 \
             --initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/dataproc/init-actoins/add_hive_jars.sh \
             --metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/hive-aux-libs ;
-        else
-          echo "skipped because requested ${_CLUSTER_TYPE} cluster type";
-        fi
-
-  ## create auto scaling dataproc cluster
-  - name: 'gcr.io/cloud-builders/gcloud'
-    id: 'create auto scaling dataproc cluster'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        if [ ${_CLUSTER_TYPE} == 'auto-scaling' ]; then
+        elif [ ${_CLUSTER_TYPE} == 'auto-scaling' ]; then
           echo "import autoscaling-policy";
           gcloud dataproc autoscaling-policies import general-policy-${_REGION}-${COMMIT_SHA} \
             --region=${_REGION} \
@@ -99,7 +66,8 @@ steps:
             --initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/dataproc/init-actoins/add_hive_jars.sh \
             --metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/hive-aux-libs ;
         else
-          echo "skipped because requested ${_CLUSTER_TYPE} cluster type";
+          echo "Specify '_CLUSTER_TYPE'. It must be 'single-node', 'multi-node', 'high-availability' or 'auto-scaling'";
+          exit 1;
         fi
 
   ## Run teragen test
