@@ -65,6 +65,10 @@ steps:
             --autoscaling-policy=general-policy-${_REGION}-${COMMIT_SHA} \
             --initialization-actions=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/dataproc/init-actoins/add_hive_jars.sh \
             --metadata=hive-aux-libs=gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/hive-aux-libs ;
+
+            echo "delete autoscaling-policy";
+            gcloud dataproc autoscaling-policies delete general-policy-${_REGION}-${COMMIT_SHA} \
+              --region=${_REGION};
         else
           echo "Specify '_CLUSTER_TYPE'. It must be 'single-node', 'multi-node', 'high-availability' or 'auto-scaling'";
           exit 1;
@@ -83,7 +87,7 @@ steps:
       - '--class=org.apache.hadoop.examples.terasort.TeraGen'
       - '--jars=file:///usr/lib/hadoop-mapreduce/hadoop-mapreduce-examples.jar'
       - '--'
-      - '100'
+      - '100000000'
       - 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/test/output/teragen_output'
 
 
