@@ -12,7 +12,8 @@ steps:
     dir: 'dataproc-custom-images'
     args: ['generate_custom_image.py',
       '--image-name', '${_IMAGE_NAME}',
-      '--dataproc-version', '1.4.16-debian9',
+      '--dataproc-version', '${_DATAPROC_VERSION}',
+      # '--base-image-uri=projects/${PROJECT_ID}/global/images/${_BASE_IMAGE_NAME}',
       '--customization-script', '../dataproc/custom-image/init_actions.sh',
       '--zone', '${_ZONE}',
       '--no-smoke-test',
