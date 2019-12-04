@@ -35,6 +35,7 @@ Otherwise google cloud build rise an error when trigger runs
 github repo
 ```
 gcloud beta builds triggers create github \
+--description="Init actions testing for single-node cluster" \
 --repo-owner="GalchenkoAlexander" \
 --repo-name="gcp-cicd" \
 --branch-pattern="^master$" \

@@ -62,6 +62,7 @@ It is used to generate image
 github repo
 ```
 gcloud beta builds triggers create github \
+--description="Data proc custom image" \
 --repo-owner="GalchenkoAlexander" \
 --repo-name="gcp-cicd" \
 --branch-pattern="^master$" \
