@@ -38,7 +38,7 @@ setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    packages=find_packages(exclude='tests/*'),
+    packages=find_packages(exclude=['tests']),
     install_requires=[
         'google-cloud-storage==1.23.0',
         'jsonschema',
