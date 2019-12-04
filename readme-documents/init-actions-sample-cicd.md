@@ -29,8 +29,6 @@ _CLUSTER_TYPE=<single-node | multi-node | high-availability | auto-scaling>
 ```
 
 #### Create cloud build trigger
-There is an issue with google cloud build trigger. Build config has to be placed in a root dir `--build-config="init_actions_dataproc_cluster.yaml"` instead of `--build-config="./cloudbuilds/init_actions_dataproc_cluster.yaml"`
-Otherwise google cloud build rise an error when trigger runs
 
 github repo
 ```
