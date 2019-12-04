@@ -28,7 +28,7 @@ _SCHEMA = {
         "components": {
             "type": "object",
             "propertyNames": {
-                "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+                "pattern": "^[-a-zA-Z0-9_]*$"
             },
             "additionalProperties": {
                 "type": "object",
