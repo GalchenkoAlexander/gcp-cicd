@@ -14,7 +14,7 @@ steps:
       '--image-name', '${_IMAGE_NAME}',
       '--dataproc-version', '${_DATAPROC_VERSION}',
       # '--base-image-uri=projects/${PROJECT_ID}/global/images/${_BASE_IMAGE_NAME}',
-      '--customization-script', '../dataproc/custom-image/init_actions.sh',
+      '--customization-script', '../dataproc/init-actions/custom-image-init-actions.sh',
       '--zone', '${_ZONE}',
       '--no-smoke-test',
       '--gcs-bucket', 'gs://${_BUCKET_NAME}/${REPO_NAME}/${BRANCH_NAME}/${COMMIT_SHA}/temp/dataproc/logs' ]
