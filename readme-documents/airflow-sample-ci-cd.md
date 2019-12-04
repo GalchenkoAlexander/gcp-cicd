@@ -17,17 +17,15 @@ Before running build make sure:
 ## How to start build
 Run build with this command:
 ```
-gcloud builds submit \
---substitutions=_BUILD_BUCKET=gcp-cicd-artifacts,REPO_NAME=gcp-cicd,BRANCH_NAME=master,SHORT_SHA=$(date | md5)  \
---config cloudbuilds/cloudbuild-airflow-cicd.yaml
+gcloud builds submit --config cloudbuilds/cloudbuild-airflow-cicd.yaml 
 ```
 ## DAGs deployment to Cloud Composer - TBD
 You can deploy staged DAGs to a Cloud Composer environment by this command:
 ```
 gcloud composer environments storage dags import \
-    --environment ENVIRONMENT_NAME \
-    --location LOCATION \
-    --source LOCAL_FILE_TO_UPLOAD
+--environment=<ENVIRONMENT_NAME> \
+--location=<REGION> \
+--source=<LOCAL_FILE_TO_UPLOAD>
 ```
 
 ## Airflow DAGs tests
@@ -50,3 +48,22 @@ The test environment should be similar to the production environment but on a sm
 In this environment, we run all Airflow pipelines on sample data and assert the data for each pipeline. 
 It will also help to make sure that everything is working fine on an actual cluster as well.
 
+#### Create cloud build trigger
+github repo
+```
+gcloud beta builds triggers create github \
+--repo-name="gcp-cicd" \
+--description="Airflow DAGs testing" \
+--repo-owner="GalchenkoAlexander" \
+--branch-pattern="^master$" \
+--build-config="cloudbuilds/cloudbuild-airflow-cicd.yaml"
+```
+cloud-source-repositories
+```
+gcloud alpha builds triggers create cloud-source-repositories \
+--repo="gcp-cicd" \
+--description="Airflow DAGs testing" \
+--repo-owner="GalchenkoAlexander" \
+--branch-pattern="^master$" \
+--build-config="cloudbuilds/cloudbuild-airflow-cicd.yaml"
+```

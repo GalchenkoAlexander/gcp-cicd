@@ -27,33 +27,37 @@ class TestComponentBase(unittest.TestCase):
             'bucket': 'a_bucket',
             'repository': 'a_repo',
             'components': {
-                'invalid name': {}
-            }
-        })
-
-        try:
-            config(root=None, mf_file=data)
-        except jsonschema.exceptions.ValidationError:
-            return
-
-        self.fail('unreachable')
-
-    def test_read_manifest_valid_component_names(self):
-
-        data = json.dumps({
-            'bucket': 'a_bucket',
-            'repository': 'a_repo',
-            'components': {
-                'invalid_name': {
+                'invalid name': {
                     'type': 'a_type',
                     'assets': []
                 }
             }
         })
 
-        p = config(root=None, mf_file=data)
+        try:
+            config(root=None, mf_file=data)
+        except jsonschema.exceptions.ValidationError as r:
+            return
 
-        self.assertEqual(len(p.components), 1)
+        self.fail('unreachable')
+
+    def test_read_manifest_valid_component_names(self):
+
+        for name in ['validName', 'valid_name', 'valid-name', 'VALIDNAME', 'validname', '00001name', 'name007']:
+            data = json.dumps({
+                'bucket': 'a_bucket',
+                'repository': 'a_repo',
+                'components': {
+                    name: {
+                        'type': 'a_type',
+                        'assets': []
+                    }
+                }
+            })
+
+            p = config(root=None, mf_file=data)
+
+            self.assertEqual(len(p.components), 1)
 
 
 if __name__ == '__main__':
