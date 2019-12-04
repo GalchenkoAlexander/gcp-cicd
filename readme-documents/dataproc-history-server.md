@@ -1,12 +1,12 @@
 There are two dataproc cluster configurations to support Application History:
-- for ephemeral cluster `dataproc/history-server/cluster-templates/ephemeral-cluster.yaml`
-- for history server `dataproc/history-server/cluster-templates/history-server.yaml`
+- for ephemeral cluster [dataproc/history-server/cluster-templates/ephemeral-cluster.yaml](../dataproc/history-server/cluster-templates/ephemeral-cluster.yaml)
+- for history server [dataproc/history-server/cluster-templates/history-server.yaml](../dataproc/history-server/cluster-templates/history-server.yaml)
 
 These ephemeral cluster and history server have to be align by configuration like next: 
 Ephemeral worker nodes of Datoproc cluster have to save event logs to a specified GCS bucket and 
 History server has to read these logs from the same bucket.
 
-When ephemeral cluster is starting it has to apply `dataproc/init-actions/disable-history-servers.sh` init-action 
+When ephemeral cluster is starting it has to apply [dataproc/init-actions/disable-history-servers.sh](../dataproc/init-actions/disable-history-servers.sh) init-action 
 script to disable its own history servers. Thi script just stop spark-history-server and hadoop-mapreduce-historyserver.
 
 Configure clusters to use GCS for log aggregation and point at the history server execute next with substitute arguments:
@@ -36,5 +36,5 @@ gcloud beta dataproc clusters import ephemeral-cluster \
 ```
 
 #### Useful links:
-https://github.com/GoogleCloudPlatform/professional-services/tree/master/examples/dataproc-persistent-history-server
-https://medium.com/google-cloud/persisting-application-history-from-ephemeral-clusters-on-google-cloud-dataproc-7b1b03a49686
+- [Dataproc Persistent History Server](https://github.com/GoogleCloudPlatform/professional-services/tree/master/examples/dataproc-persistent-history-server)
+- [Persisting Application History from Ephemeral Clusters on Google Cloud Dataproc](https://medium.com/google-cloud/persisting-application-history-from-ephemeral-clusters-on-google-cloud-dataproc-7b1b03a49686)
