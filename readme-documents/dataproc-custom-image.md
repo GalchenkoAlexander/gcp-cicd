@@ -58,6 +58,7 @@ It will create a custom image with name `dataproc-custom-image-1575030392` with 
 - copy resources to GCS and update manifest
 
 #### Create cloud build trigger
+github repo
 ```
 gcloud beta builds triggers create github \
 --repo-owner="GalchenkoAlexander" \
@@ -70,6 +71,17 @@ _ZONE=us-central1-b,\
 _IMAGE_NAME=dataproc-custom-image-$(date +%s),\
 _DATAPROC_VERSION=1.4.16-debian9
 ```
-
+cloud-source-repositories
+```
+gcloud alpha builds triggers create cloud-source-repositories \
+--repo="gcp-cicd" \
+--branch-pattern="^master$" \
+--build-config="cloudbuilds/dataproc-custom-image.yaml" \
+--substitutions \
+_BUCKET_NAME=gcp-cicd-artifacts,\
+_ZONE=us-central1-b,\
+_IMAGE_NAME=dataproc-custom-image-$(date +%s),\
+_DATAPROC_VERSION=1.4.16-debian9
+```
 #### More info found here 
 https://github.com/GoogleCloudPlatform/dataproc-custom-images
