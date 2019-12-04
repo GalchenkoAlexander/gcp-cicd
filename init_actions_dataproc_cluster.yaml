@@ -1,5 +1,6 @@
 steps:
 
+
   # copy init actions to GCS
   - name: 'gcr.io/cloud-builders/gsutil'
     id: 'copy_resources'
