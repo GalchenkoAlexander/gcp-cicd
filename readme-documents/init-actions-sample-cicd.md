@@ -16,7 +16,7 @@ Parameter `_CLUSTER_TYPE` is define type of cluster. It can be `single-node`, `m
 
 Use these command to run build:
 
-#### Dataproc cluster
+#### submit create and test Dataproc cluster build
 ```
 gcloud builds submit \
 --config=./cloudbuilds/init_actions_dataproc_cluster.yaml \
@@ -26,4 +26,37 @@ _CLUSTER_NAME=<CLUSTER_NAME>,\
 _REGION=<REGION>,\
 _ZONE=<ZONE>,\
 _CLUSTER_TYPE=<single-node | multi-node | high-availability | auto-scaling>
+```
+
+#### Submit cloud build trigger
+There is an issue with google cloud build trigger. Build config has to be placed in a root dir `--build-config="init_actions_dataproc_cluster.yaml"` instead of `--build-config="./cloudbuilds/init_actions_dataproc_cluster.yaml"`
+Otherwise google cloud build rise an error when trigger runs
+
+github repo
+```
+gcloud beta builds triggers create github \
+--repo-owner="GalchenkoAlexander" \
+--repo-name="gcp-cicd" \
+--branch-pattern="^master$" \
+--build-config="cloudbuilds/init_actions_dataproc_cluster.yaml" \
+--substitutions \
+_BUCKET_NAME=gcp-cicd-artifacts,\
+_CLUSTER_NAME=gcp-cicd-dataproc-cluster,\
+_REGION=us-central1,\
+_ZONE=us-central1-b,\
+_CLUSTER_TYPE=single-node
+```
+
+cloud-source-repositories
+```
+gcloud alpha builds triggers create cloud-source-repositories \
+--repo="gcp-cicd" \
+--branch-pattern="^master$" \
+--build-config="cloudbuilds/init_actions_dataproc_cluster.yaml" \
+--substitutions \
+_BUCKET_NAME=gcp-cicd-artifacts,\
+_CLUSTER_NAME=gcp-cicd-dataproc-cluster,\
+_REGION=us-central1,\
+_ZONE=us-central1-b,\
+_CLUSTER_TYPE=single-node
 ```
