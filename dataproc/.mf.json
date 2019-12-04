@@ -25,6 +25,14 @@
           "glob": "./auto-scaling/*.yaml"
         }
       ]
+    },
+    "dataproc-history-server": {
+      "type": "history-server",
+      "assets": [
+        {"glob": "./history-server/cluster-templates/*.yaml"},
+        {"glob": "./init-actions/disable-history-servers.sh"},
+        {"glob": "./history-server/setup-dataproc-history-server.sh"}
+      ]
     }
   }
 }
