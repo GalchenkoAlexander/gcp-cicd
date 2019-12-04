@@ -60,7 +60,7 @@ class TestComponentBase(unittest.TestCase):
 
         asset = assets[0]
 
-        self.assertEqual('ff5e646440ba10fa5140f196684f12b0.zip', asset.filename)
+        self.assertEqual('f56dfba74083800963b687f65518e280.zip', asset.filename)
         self.assertEqual('/15kZEC6EPpRQPGWaE8SsA==', asset.md5)
 
 
